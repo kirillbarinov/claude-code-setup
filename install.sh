@@ -18,7 +18,7 @@ command -v node >/dev/null || {
   exit 1
 }
 
-mkdir -p "$CLAUDE_DIR"/{hooks,skills,agents,commands}
+mkdir -p "$CLAUDE_DIR"/{hooks,skills,agents,commands,scripts}
 
 # --- Бэкап существующих конфигов ---
 for f in settings.json CLAUDE.md RTK.md statusline-command.sh; do
@@ -46,7 +46,8 @@ cp -R "$REPO_DIR"/claude/skills/web-test "$REPO_DIR"/claude/skills/youtube-searc
 cp "$REPO_DIR"/claude/research-workflow.md "$CLAUDE_DIR/"
 cp "$REPO_DIR"/claude/agents/*.md "$CLAUDE_DIR/agents/"
 cp "$REPO_DIR"/claude/commands/*.md "$CLAUDE_DIR/commands/"
-chmod +x "$CLAUDE_DIR"/hooks/*.sh "$CLAUDE_DIR/statusline-command.sh"
+cp "$REPO_DIR"/claude/scripts/* "$CLAUDE_DIR/scripts/"
+chmod +x "$CLAUDE_DIR"/hooks/*.sh "$CLAUDE_DIR/statusline-command.sh" "$CLAUDE_DIR"/scripts/*.sh
 
 # settings.json: подставляем реальный $HOME вместо плейсхолдера
 sed "s|__HOME__|$HOME|g" "$REPO_DIR/claude/settings.json" > "$CLAUDE_DIR/settings.json"
@@ -56,6 +57,12 @@ echo "   settings.json установлен (старый — в бэкапе)"
 if ! claude mcp list 2>/dev/null | grep -q chrome-devtools; then
   echo "==> Регистрирую MCP chrome-devtools..."
   claude mcp add -s user chrome-devtools -- npx -y chrome-devtools-mcp@latest
+fi
+
+# --- MCP: context7 (актуальные доки библиотек, ключ не нужен) ---
+if ! claude mcp list 2>/dev/null | grep -q context7; then
+  echo "==> Регистрирую MCP context7..."
+  claude mcp add -s user context7 -- npx -y @upstash/context7-mcp@latest
 fi
 
 # --- MCP: perplexity (нужен свой API-ключ: https://www.perplexity.ai/settings/api) ---
