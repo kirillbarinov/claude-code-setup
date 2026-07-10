@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+# Установка сетапа Claude Code.
+# Порядок важен: сначала GSD (кладёт свои скиллы/хуки), потом этот скрипт.
+set -euo pipefail
+
+REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
+CLAUDE_DIR="$HOME/.claude"
+TS="$(date +%Y%m%d-%H%M%S)"
+
+echo "==> Claude Code setup installer"
+
+command -v claude >/dev/null || {
+  echo "❌ claude не найден. Сначала установи Claude Code: https://claude.com/claude-code"
+  exit 1
+}
+command -v node >/dev/null || {
+  echo "❌ node не найден. Установи Node.js (brew install node)."
+  exit 1
+}
+
+mkdir -p "$CLAUDE_DIR"/{hooks,skills,agents,commands}
+
+# --- Бэкап существующих конфигов ---
+for f in settings.json CLAUDE.md RTK.md statusline-command.sh; do
+  if [ -f "$CLAUDE_DIR/$f" ]; then
+    cp "$CLAUDE_DIR/$f" "$CLAUDE_DIR/$f.bak-$TS"
+    echo "   бэкап: $CLAUDE_DIR/$f.bak-$TS"
+  fi
+done
+
+# --- GSD (get-shit-done): 60+ скиллов, агенты, хуки ---
+if [ ! -d "$CLAUDE_DIR/get-shit-done" ]; then
+  echo "==> Устанавливаю GSD (get-shit-done-cc)..."
+  npx -y get-shit-done-cc@latest install
+else
+  echo "   GSD уже установлен, пропускаю (обновление: /gsd:update внутри Claude Code)"
+fi
+
+# --- Файлы из репозитория ---
+echo "==> Копирую конфиги, хуки, скиллы, агентов..."
+cp "$REPO_DIR"/claude/CLAUDE.md "$CLAUDE_DIR/"
+cp "$REPO_DIR"/claude/RTK.md "$CLAUDE_DIR/"
+cp "$REPO_DIR"/claude/statusline-command.sh "$CLAUDE_DIR/"
+cp -R "$REPO_DIR"/claude/hooks/. "$CLAUDE_DIR/hooks/"
+cp -R "$REPO_DIR"/claude/skills/web-test "$REPO_DIR"/claude/skills/youtube-search "$CLAUDE_DIR/skills/"
+cp "$REPO_DIR"/claude/agents/*.md "$CLAUDE_DIR/agents/"
+cp "$REPO_DIR"/claude/commands/*.md "$CLAUDE_DIR/commands/"
+chmod +x "$CLAUDE_DIR"/hooks/*.sh "$CLAUDE_DIR/statusline-command.sh"
+
+# settings.json: подставляем реальный $HOME вместо плейсхолдера
+sed "s|__HOME__|$HOME|g" "$REPO_DIR/claude/settings.json" > "$CLAUDE_DIR/settings.json"
+echo "   settings.json установлен (старый — в бэкапе)"
+
+# --- MCP: chrome-devtools ---
+if ! claude mcp list 2>/dev/null | grep -q chrome-devtools; then
+  echo "==> Регистрирую MCP chrome-devtools..."
+  claude mcp add -s user chrome-devtools -- npx -y chrome-devtools-mcp@latest
+fi
+
+# --- CLI-утилиты ---
+echo "==> Проверяю CLI-утилиты..."
+if ! command -v rtk >/dev/null; then
+  if command -v brew >/dev/null; then
+    echo "   Устанавливаю rtk (Rust Token Killer)..."
+    brew install rtk
+  else
+    echo "   ⚠️  rtk не установлен и brew нет. См. https://www.rtk-ai.app/"
+  fi
+fi
+if ! command -v ezycopy >/dev/null; then
+  echo "   ⚠️  ezycopy не установлен — нужен для Web Fetching Rules."
+  echo "      Установка: https://github.com/gupsammy/EzyCopy (go install github.com/gupsammy/EzyCopy@latest)"
+fi
+if ! command -v yt-dlp >/dev/null; then
+  echo "   ⚠️  yt-dlp не установлен — нужен для скилла youtube-search (brew install yt-dlp)."
+fi
+
+echo ""
+echo "✅ Готово. Дальше:"
+echo "   1. Запусти claude — он предложит установить плагины из settings.json"
+echo "      (superpowers, skill-creator, frontend-design, context-mode, claude-mem)."
+echo "   2. Проверь хуки: /hooks, плагины: /plugin, MCP: claude mcp list."
+echo "   3. Обновление GSD: /gsd:update. Справка: /gsd:help."
