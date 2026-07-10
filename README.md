@@ -15,6 +15,7 @@
 | **Хуки** | perplexity-guard (принудительно направляет весь веб-поиск в Perplexity MCP), rtk-rewrite (авто-проксирование команд через rtk для экономии токенов), ultrathink-conditional, compact-limiter, context-mode-cache-heal |
 | **CLI** | `rtk` (Rust Token Killer — экономит 60–90% токенов на dev-командах), `ezycopy` (чистый Markdown из любого URL), `yt-dlp` |
 | **CLAUDE.md / RTK.md** | Глобальные инструкции: правило 95% уверенности, проактивные скиллы, субагенты для рисёрча, web-fetch через ezycopy |
+| **rules/** | Те же правила отдельными модульными файлами (`claude/rules/`) — можно подключать выборочно вместо полного CLAUDE.md, см. `claude/rules/README.md` |
 | **statusline** | Кастомная статус-строка (GSD-статус, контекст, модель) |
 
 ## Требования
