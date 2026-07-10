@@ -8,11 +8,12 @@
 |---|---|
 | **GSD (get-shit-done)** | 60+ скиллов workflow-фреймворка: планирование фаз, исполнение, код-ревью, дебаг, roadmap (`/gsd:help`) |
 | **Плагины** | superpowers (дисциплина работы: TDD, brainstorming, systematic-debugging), skill-creator, frontend-design, context-mode (экономия контекста), claude-mem (память между сессиями) |
-| **MCP** | chrome-devtools (управление браузером), context7 и прочие приходят с плагинами |
-| **Кастомные скиллы** | `web-test` (браузерный smoke-тест через изолированный субагент), `youtube-search` (поиск по YouTube через yt-dlp) |
+| **MCP** | perplexity-mcp (весь веб-поиск, нужен свой API-ключ), chrome-devtools (управление браузером), context7 и прочие приходят с плагинами |
+| **Кастомные скиллы** | `web-test` (браузерный smoke-тест через изолированный субагент), `youtube-search` (поиск по YouTube через yt-dlp), `source-finder` (поиск источников: Perplexity + NotebookLM Deep Research) |
 | **Кастомные агенты** | backend-engineer, frontend-engineer, security-auditor (QA через реальный браузер), documenter, web-test-runner |
 | **Команды** | `/team` — командный режим из нескольких агентов |
-| **Хуки** | rtk-rewrite (авто-проксирование команд через rtk для экономии токенов), ultrathink-conditional, compact-limiter, context-mode-cache-heal |
+| **Хуки** | perplexity-guard (принудительно направляет весь веб-поиск в Perplexity MCP), rtk-rewrite (авто-проксирование команд через rtk для экономии токенов), ultrathink-conditional, compact-limiter, context-mode-cache-heal |
+| **Research-воркфлоу** | `research-workflow.md` — алгоритм наполнения NotebookLM-ноутбуков исследованиями |
 | **CLI** | `rtk` (Rust Token Killer — экономит 60–90% токенов на dev-командах), `ezycopy` (чистый Markdown из любого URL), `yt-dlp` |
 | **CLAUDE.md / RTK.md** | Глобальные инструкции: правило 95% уверенности, проактивные скиллы, субагенты для рисёрча, web-fetch через ezycopy |
 | **statusline** | Кастомная статус-строка (GSD-статус, контекст, модель) |
@@ -36,7 +37,7 @@ bash install.sh
 1. Бэкапит твои текущие `settings.json`, `CLAUDE.md`, `RTK.md`, `statusline-command.sh` (в `*.bak-<дата>`).
 2. Ставит GSD (`npx get-shit-done-cc install`) — скиллы, агенты и хуки фреймворка.
 3. Копирует конфиги, кастомные хуки, скиллы, агентов и команды в `~/.claude/`.
-4. Регистрирует MCP `chrome-devtools`.
+4. Регистрирует MCP `chrome-devtools` и `perplexity-mcp` (спросит твой `PERPLEXITY_API_KEY` — взять на https://www.perplexity.ai/settings/api; ключ никуда, кроме твоей локальной конфигурации, не попадает).
 5. Ставит `rtk` через brew; подсказывает, как поставить `ezycopy` и `yt-dlp`.
 
 После этого запусти `claude` — он сам предложит установить плагины, перечисленные в `settings.json` (superpowers, skill-creator, frontend-design — из официального маркетплейса; context-mode и claude-mem — из своих GitHub-маркетплейсов).
@@ -61,6 +62,8 @@ ezycopy --version
 
 ## Заметки
 
+- **Perplexity обязателен по дизайну сетапа**: хук `perplexity-guard.sh` блокирует встроенные `WebSearch`/`WebFetch` и публичный `curl`/`wget`, направляя весь поиск в Perplexity MCP. Если ключа нет — временно отключи guard (`touch ~/.claude/perplexity-guard.disabled`, окно 10 мин) или удали его записи из `settings.json`.
+- В скилле `source-finder` замени плейсхолдеры на UUID своих NotebookLM-ноутбуков (нужен NotebookLM MCP).
 - `settings.json` содержит `"permissions.deny": ["Bash(git push*)"]` — защита от случайного пуша агентом. Пуш делается руками или через `gh`. Убери, если не нужно.
 - `"language": "Russian"` — Claude отвечает по-русски. Поменяй/убери под себя.
 - `"model": "claude-fable-5[1m]"` — модель по умолчанию с контекстом 1M. Требует соответствующей подписки; убери строку, чтобы использовать дефолт.

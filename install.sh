@@ -42,7 +42,8 @@ cp "$REPO_DIR"/claude/CLAUDE.md "$CLAUDE_DIR/"
 cp "$REPO_DIR"/claude/RTK.md "$CLAUDE_DIR/"
 cp "$REPO_DIR"/claude/statusline-command.sh "$CLAUDE_DIR/"
 cp -R "$REPO_DIR"/claude/hooks/. "$CLAUDE_DIR/hooks/"
-cp -R "$REPO_DIR"/claude/skills/web-test "$REPO_DIR"/claude/skills/youtube-search "$CLAUDE_DIR/skills/"
+cp -R "$REPO_DIR"/claude/skills/web-test "$REPO_DIR"/claude/skills/youtube-search "$REPO_DIR"/claude/skills/source-finder "$CLAUDE_DIR/skills/"
+cp "$REPO_DIR"/claude/research-workflow.md "$CLAUDE_DIR/"
 cp "$REPO_DIR"/claude/agents/*.md "$CLAUDE_DIR/agents/"
 cp "$REPO_DIR"/claude/commands/*.md "$CLAUDE_DIR/commands/"
 chmod +x "$CLAUDE_DIR"/hooks/*.sh "$CLAUDE_DIR/statusline-command.sh"
@@ -55,6 +56,21 @@ echo "   settings.json установлен (старый — в бэкапе)"
 if ! claude mcp list 2>/dev/null | grep -q chrome-devtools; then
   echo "==> Регистрирую MCP chrome-devtools..."
   claude mcp add -s user chrome-devtools -- npx -y chrome-devtools-mcp@latest
+fi
+
+# --- MCP: perplexity (нужен свой API-ключ: https://www.perplexity.ai/settings/api) ---
+if ! claude mcp list 2>/dev/null | grep -q perplexity-mcp; then
+  echo ""
+  echo "==> Perplexity MCP — весь веб-поиск идёт через него (hook блокирует встроенный)."
+  read -r -p "   Введи PERPLEXITY_API_KEY (Enter — пропустить): " PPLX_KEY
+  if [ -n "${PPLX_KEY:-}" ]; then
+    claude mcp add -s user perplexity-mcp -e PERPLEXITY_API_KEY="$PPLX_KEY" -- npx -y @jschuller/perplexity-mcp
+    echo "   perplexity-mcp зарегистрирован."
+  else
+    echo "   ⚠️  Пропущено. Без ключа perplexity-guard будет блокировать веб-поиск —"
+    echo "      либо добавь MCP позже: claude mcp add -s user perplexity-mcp -e PERPLEXITY_API_KEY=<ключ> -- npx -y @jschuller/perplexity-mcp"
+    echo "      либо отключи guard: touch ~/.claude/perplexity-guard.disabled (10-мин окно) или убери его из settings.json"
+  fi
 fi
 
 # --- CLI-утилиты ---

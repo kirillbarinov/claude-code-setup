@@ -75,6 +75,26 @@
         ]
       },
       {
+        "matcher": "WebSearch|WebFetch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash __HOME__/.claude/hooks/perplexity-guard.sh",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash __HOME__/.claude/hooks/perplexity-guard.sh",
+            "timeout": 5
+          }
+        ]
+      },
+      {
         "matcher": "Write|Edit",
         "hooks": [
           {

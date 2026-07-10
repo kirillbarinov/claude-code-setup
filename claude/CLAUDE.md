@@ -4,6 +4,36 @@
 
 Do not make any changes until you have 95% confidence in what you need to build. Ask me follow-up questions until you reach that confidence.
 
+# Perplexity — единственный канал интернет-поиска (главный агент)
+
+Любой поиск информации в интернете идёт ТОЛЬКО через `mcp__perplexity-mcp__perplexity_search_web`. Встроенный `WebSearch`/`WebFetch` не использовать; прямой `curl`/`wget` по публичному URL — тоже нет (guard их режет). Не отвечать «из головы», если вопрос требует данных из интернета (факты, свежие данные, специфические технические детали) — сначала искать в Perplexity.
+
+**Выбор модели (экономия — по умолчанию `sonar`):**
+- Прямой факт / один вопрос → `model="sonar"`, `max_tokens=1500`
+- 2–3 угла / уточнения → несколько вызовов `sonar` (НЕ pro), каждый `max_tokens=1500`
+- Research (много источников + синтез + citations) → один `model="sonar-pro"`, `max_tokens=1500–1800`, `temperature=0`
+- Только сбор ссылок/citations → `model="sonar-pro"`, `max_tokens=400`, `temperature=0`
+
+**Свежесть (`recency`, дефолт `month`):**
+- Новости / цены / релизы / «сейчас» → `recency="day"` или `"week"`.
+- Стабильные факты, доки, как-это-работает → дефолт `month` ок.
+- Историческое / архив → `recency="year"`.
+
+**Правила экономии:**
+- НЕ брать `sonar-pro` без причины — его output дороже `sonar` в ~15× ($15 vs $1 за 1M).
+- НЕ разгоняться на 5+ вызовов `sonar` по одному вопросу — тут уже один `sonar-pro` дешевле и чище (меньше per-request fee и меньше «простыней» в контексте Claude).
+- `max_tokens` — это потолок (страховка от обрезки/разгона), не заказанная длина: платишь за фактически сгенерированное. На дешёвом `sonar` держи щедрым (~1500), на дорогом `sonar-pro` — умеренным. Технический максимум модели — 8192 токена, **наш жёсткий потолок — `max_tokens=2000`, не превышать**. Контекст: `sonar` 128K, `sonar-pro` 200K.
+
+**Субагенты:** gsd-* и пр. guard НЕ трогает (свой research-инструментарий). Но субагентов, которых спавнишь сам под research, инструктируй в промпте: экономь веб-поиск, держи вывод коротким. Дисциплина экономии на них не распространяется автоматически.
+
+**Результат Perplexity всегда обрабатывать и суммировать под вопрос — не вставлять сырой вывод.**
+
+Открыть конкретный публичный URL — через `ezycopy <URL>` (см. Web Fetching Rules), не Perplexity. Локальные/приватные хосты (localhost, 127.x, 10.x, 192.168.x, 172.16–31.x) `curl`'ом не блокируются.
+
+**Если Perplexity недоступен / ключ протух:** `touch ~/.claude/perplexity-guard.disabled` — откроется 10-мин окно, в котором встроенный поиск временно разрешён (фолбэк). Удали флаг, когда Perplexity снова жив.
+
+> Принуждение: hook `perplexity-guard.sh` (`PreToolUse` на `WebSearch|WebFetch` и `Bash`) блокирует встроенный веб-поиск и публичный `curl`/`wget` для главного агента, редиректит в Perplexity. Субагенты пропускаются по top-level полю `agent_id` (парсинг `jq`, не grep — байпас через текст запроса закрыт). Решения пишутся в `~/.claude/perplexity-guard.log`. Другие MCP (context-mode и пр.) не покрываются — их веб-fetch не трогается.
+
 # Context7 — When to Use
 
 Use `mcp__context7__resolve-library-id` + `mcp__context7__query-docs` proactively, without an explicit user request.
