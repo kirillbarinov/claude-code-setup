@@ -43,6 +43,26 @@ cp "$REPO_DIR"/claude/RTK.md "$CLAUDE_DIR/"
 cp "$REPO_DIR"/claude/statusline-command.sh "$CLAUDE_DIR/"
 cp -R "$REPO_DIR"/claude/hooks/. "$CLAUDE_DIR/hooks/"
 cp -R "$REPO_DIR"/claude/skills/web-test "$REPO_DIR"/claude/skills/youtube-search "$CLAUDE_DIR/skills/"
+
+# --- Документ-скиллы Anthropic: xlsx, docx, pptx, pdf (github.com/anthropics/skills) ---
+if [ ! -d "$CLAUDE_DIR/skills/xlsx" ]; then
+  echo "==> Ставлю документ-скиллы Anthropic (xlsx, docx, pptx, pdf)..."
+  TMP_SKILLS="$(mktemp -d)"
+  if git clone --depth 1 https://github.com/anthropics/skills "$TMP_SKILLS/anthropic-skills" >/dev/null 2>&1; then
+    for s in xlsx docx pptx pdf; do
+      cp -R "$TMP_SKILLS/anthropic-skills/skills/$s" "$CLAUDE_DIR/skills/"
+    done
+    echo "   xlsx, docx, pptx, pdf установлены."
+  else
+    echo "   ⚠️  Не удалось клонировать anthropics/skills — поставь позже вручную."
+  fi
+  rm -rf "$TMP_SKILLS"
+fi
+
+# Python-зависимости документ-скиллов (LibreOffice для конвертаций — опционально: brew install --cask libreoffice)
+echo "==> Python-зависимости документ-скиллов..."
+python3 -m pip install --quiet openpyxl pandas python-docx pypdf pdfplumber pymupdf markitdown 2>/dev/null \
+  || echo "   ⚠️  pip не отработал — поставь вручную: python3 -m pip install openpyxl pandas python-docx pypdf pdfplumber pymupdf markitdown"
 cp "$REPO_DIR"/claude/agents/*.md "$CLAUDE_DIR/agents/"
 cp "$REPO_DIR"/claude/commands/*.md "$CLAUDE_DIR/commands/"
 cp "$REPO_DIR"/claude/scripts/* "$CLAUDE_DIR/scripts/"
@@ -79,6 +99,19 @@ if ! claude mcp list 2>/dev/null | grep -q perplexity-mcp; then
   fi
 fi
 
+# --- Бинари для плагинов: LSP-серверы, sentry-cli, semgrep ---
+echo "==> Бинари для плагинов (pyright, typescript-language-server, sentry-cli, semgrep)..."
+command -v pyright >/dev/null || npm install -g pyright
+command -v typescript-language-server >/dev/null || npm install -g typescript-language-server typescript
+command -v sentry-cli >/dev/null || npm install -g @sentry/cli
+if ! command -v semgrep >/dev/null; then
+  if command -v brew >/dev/null; then
+    brew install semgrep
+  else
+    python3 -m pip install --quiet semgrep 2>/dev/null || echo "   ⚠️  semgrep не установлен — плагин semgrep будет молчать. https://semgrep.dev/docs/getting-started/"
+  fi
+fi
+
 # --- CLI-утилиты ---
 echo "==> Проверяю CLI-утилиты..."
 if ! command -v rtk >/dev/null; then
@@ -100,6 +133,8 @@ fi
 echo ""
 echo "✅ Готово. Дальше:"
 echo "   1. Запусти claude — он предложит установить плагины из settings.json"
-echo "      (superpowers, skill-creator, frontend-design, context-mode, claude-mem)."
+echo "      (superpowers, skill-creator, frontend-design, pyright-lsp, typescript-lsp,"
+echo "       semgrep, sentry, sentry-cli, hookify — официальный маркетплейс;"
+echo "       context-mode, claude-mem, impeccable — из своих GitHub-маркетплейсов)."
 echo "   2. Проверь хуки: /hooks, плагины: /plugin, MCP: claude mcp list."
 echo "   3. Обновление GSD: /gsd:update. Справка: /gsd:help."

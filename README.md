@@ -7,9 +7,10 @@
 | Компонент | Что даёт |
 |---|---|
 | **GSD (get-shit-done)** | 60+ скиллов workflow-фреймворка: планирование фаз, исполнение, код-ревью, дебаг, roadmap (`/gsd:help`) |
-| **Плагины** | superpowers (дисциплина работы: TDD, brainstorming, systematic-debugging), skill-creator, frontend-design, context-mode (экономия контекста), claude-mem (память между сессиями) |
+| **Плагины (12)** | superpowers (дисциплина работы: TDD, brainstorming, systematic-debugging), skill-creator, frontend-design, impeccable (аудит качества UI), context-mode (экономия контекста), claude-mem (память между сессиями), pyright-lsp + typescript-lsp (языковые серверы: точная навигация и диагностика вместо grep), semgrep (статический анализ безопасности), sentry + sentry-cli (мониторинг ошибок прода), hookify (создание хуков-правил обычным языком) |
 | **MCP** | perplexity-mcp (весь веб-поиск, нужен свой API-ключ), chrome-devtools (управление браузером), context7 (актуальные доки библиотек, без ключа); MCP плагинов context-mode и claude-mem приходят с плагинами |
 | **Кастомные скиллы** | `web-test` (браузерный smoke-тест через изолированный субагент), `youtube-search` (поиск по YouTube через yt-dlp) |
+| **Документ-скиллы** | `xlsx`, `docx`, `pptx`, `pdf` — чтение/создание/правка офисных файлов (официальные скиллы [anthropics/skills](https://github.com/anthropics/skills), ставятся install-скриптом вместе с Python-зависимостями) |
 | **Кастомные агенты** | backend-engineer, frontend-engineer, security-auditor (QA через реальный браузер), documenter, web-test-runner |
 | **Команды** | `/team` — командный режим из нескольких агентов (+ вспомогательные скрипты `scripts/team-*` для tmux/iTerm-панелей) |
 | **Хуки** | perplexity-guard (принудительно направляет весь веб-поиск в Perplexity MCP), rtk-rewrite (авто-проксирование команд через rtk для экономии токенов), ultrathink-conditional, compact-limiter, context-mode-cache-heal |
@@ -69,10 +70,12 @@ powershell -ExecutionPolicy Bypass -File install.ps1
 1. Бэкапят твои текущие `settings.json`, `CLAUDE.md`, `RTK.md`, `statusline-command.sh` (в `*.bak-<дата>`).
 2. Ставит GSD (`npx get-shit-done-cc install`) — скиллы, агенты и хуки фреймворка.
 3. Копирует конфиги, кастомные хуки, скиллы, агентов и команды в `~/.claude/`.
-4. Регистрирует MCP `chrome-devtools`, `context7` и `perplexity-mcp` (спросит твой `PERPLEXITY_API_KEY` — взять на https://www.perplexity.ai/settings/api; ключ никуда, кроме твоей локальной конфигурации, не попадает).
-5. Ставит `rtk` через brew (только macOS/Linux); подсказывает, как поставить `ezycopy` и `yt-dlp`.
+4. Ставит документ-скиллы `xlsx`/`docx`/`pptx`/`pdf` из [anthropics/skills](https://github.com/anthropics/skills) и их Python-зависимости (openpyxl, pandas, python-docx, pypdf, pdfplumber, pymupdf, markitdown).
+5. Регистрирует MCP `chrome-devtools`, `context7` и `perplexity-mcp` (спросит твой `PERPLEXITY_API_KEY` — взять на https://www.perplexity.ai/settings/api; ключ никуда, кроме твоей локальной конфигурации, не попадает).
+6. Ставит бинари для плагинов: `pyright`, `typescript-language-server` (npm), `@sentry/cli` (npm), `semgrep` (brew/pip).
+7. Ставит `rtk` через brew (только macOS/Linux); подсказывает, как поставить `ezycopy` и `yt-dlp`.
 
-После этого запусти `claude` — он сам предложит установить плагины, перечисленные в `settings.json` (superpowers, skill-creator, frontend-design — из официального маркетплейса; context-mode и claude-mem — из своих GitHub-маркетплейсов).
+После этого запусти `claude` — он сам предложит установить плагины, перечисленные в `settings.json` (superpowers, skill-creator, frontend-design, pyright-lsp, typescript-lsp, semgrep, sentry, sentry-cli, hookify — из официального маркетплейса; context-mode, claude-mem и impeccable — из своих GitHub-маркетплейсов).
 
 ## Проверка
 
@@ -80,7 +83,7 @@ powershell -ExecutionPolicy Bypass -File install.ps1
 
 ```
 /hooks          # хуки подхватились
-/plugin         # 5 плагинов установлены и включены
+/plugin         # 12 плагинов установлены и включены
 /gsd:help       # GSD работает
 ```
 
@@ -100,4 +103,8 @@ ezycopy --version
 - `"model": "claude-fable-5[1m]"` — модель по умолчанию с контекстом 1M. Требует соответствующей подписки; убери строку, чтобы использовать дефолт.
 - Хук `rtk-rewrite.sh` прозрачно оборачивает частые команды (`git status` и т.п.) в `rtk` — если rtk не установлен, хук просто пропускает.
 - Скилл `youtube-search` требует `yt-dlp`; скилл `web-test` использует MCP chrome-devtools и агента `web-test-runner`.
+- Документ-скиллы (`xlsx`/`docx`/`pptx`/`pdf`) для конвертаций форматов используют LibreOffice — опционально: `brew install --cask libreoffice`.
+- Плагины `pyright-lsp`/`typescript-lsp` требуют бинари `pyright` и `typescript-language-server` (ставятся install-скриптом через npm); `semgrep` — одноимённый CLI; `sentry`/`sentry-cli` — аккаунт Sentry (OAuth при первом использовании).
+- `hookify` позволяет создавать собственные хуки-правила обычным языком: `/hookify <описание правила>`.
+- Токен-диета GSD (опционально): редко используемые кластеры скиллов можно убрать из поверхности, перенеся их директории `~/.claude/skills/gsd-*` в соседнюю папку (например, `~/.claude/skills-disabled-gsd/`); возврат — обратный перенос + рестарт сессии.
 - Обновление GSD: `/gsd:update` внутри Claude Code.
