@@ -5,8 +5,9 @@
 # Субагенты (gsd-*, Explore, research) пропускаются по полю agent_id —
 # их research-инструментарий не трогаем. Другие MCP не покрываются (by design).
 #
-# Различение «главный vs субагент» — по штатному top-level полю agent_id
-# (присутствует только внутри субагента). Парсинг через jq (не grep по тексту),
+# Различение «главный vs субагент» — по top-level полям agent_id ИЛИ agent_type
+# (обычный субагент несёт оба; ИМЕНОВАННЫЙ агент — только agent_type, без agent_id;
+# у главного агента нет ни одного). Парсинг через jq (не grep по тексту),
 # чтобы строка "agent_id" внутри запроса/URL не давала ложный пропуск.
 #
 # Фолбэк: если Perplexity недоступен/ключ протух — коснись флага
@@ -30,7 +31,7 @@ allow() { log "ALLOW $*"; exit 0; }   # пустой вывод = разреши
 # --- извлечение полей ---
 if [ -n "$JQ" ]; then
   tool=$(printf '%s' "$input"  | "$JQ" -r '.tool_name // empty'           2>/dev/null)
-  agent=$(printf '%s' "$input" | "$JQ" -r '.agent_id // empty'            2>/dev/null)
+  agent=$(printf '%s' "$input" | "$JQ" -r '.agent_id // .agent_type // empty' 2>/dev/null)
   cmd=$(printf '%s' "$input"   | "$JQ" -r '.tool_input.command // empty'  2>/dev/null)
 else
   log "WARN jq not found — degraded parse (fail-closed for main agent)"

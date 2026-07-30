@@ -49,8 +49,8 @@ Copy-Item (Join-Path $RepoDir "claude\CLAUDE.md")              $ClaudeDir -Force
 Copy-Item (Join-Path $RepoDir "claude\RTK.md")                 $ClaudeDir -Force
 Copy-Item (Join-Path $RepoDir "claude\statusline-command.sh")  $ClaudeDir -Force
 Copy-Item (Join-Path $RepoDir "claude\hooks\*")   (Join-Path $ClaudeDir "hooks")   -Recurse -Force
-Copy-Item (Join-Path $RepoDir "claude\skills\web-test")       (Join-Path $ClaudeDir "skills") -Recurse -Force
-Copy-Item (Join-Path $RepoDir "claude\skills\youtube-search") (Join-Path $ClaudeDir "skills") -Recurse -Force
+Copy-Item (Join-Path $RepoDir "claude\skills\*")             (Join-Path $ClaudeDir "skills") -Recurse -Force
+if (Test-Path (Join-Path $RepoDir "claude\research-workflow.md")) { Copy-Item (Join-Path $RepoDir "claude\research-workflow.md") $ClaudeDir -Force }
 
 # --- Документ-скиллы Anthropic: xlsx, docx, pptx, pdf (github.com/anthropics/skills) ---
 if (-not (Test-Path (Join-Path $ClaudeDir "skills\xlsx"))) {

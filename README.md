@@ -9,11 +9,12 @@
 | **GSD (get-shit-done)** | 60+ скиллов workflow-фреймворка: планирование фаз, исполнение, код-ревью, дебаг, roadmap (`/gsd:help`) |
 | **Плагины (12)** | superpowers (дисциплина работы: TDD, brainstorming, systematic-debugging), skill-creator, frontend-design, impeccable (аудит качества UI), context-mode (экономия контекста), claude-mem (память между сессиями), pyright-lsp + typescript-lsp (языковые серверы: точная навигация и диагностика вместо grep), semgrep (статический анализ безопасности), sentry + sentry-cli (мониторинг ошибок прода), hookify (создание хуков-правил обычным языком) |
 | **MCP** | perplexity-mcp (весь веб-поиск, нужен свой API-ключ), chrome-devtools (управление браузером), context7 (актуальные доки библиотек, без ключа); MCP плагинов context-mode и claude-mem приходят с плагинами |
-| **Кастомные скиллы** | `web-test` (браузерный smoke-тест через изолированный субагент), `youtube-search` (поиск по YouTube через yt-dlp) |
+| **Поиск «Воронка» v2** | Алгоритм интернет-поиска: скилл `research` + агент `researcher` + агент-ломатель (adversarial-проверка отчёта) + валидатор `validate-research-report.py`. Классы ФАКТ/ПРАКТИКА/ВЫБОР/СОСТОЯНИЕ, режимы quick/standard/wide. Принят по итогам 5 раундов adversarial-приёмки — сводки в [docs/funnel-v2-acceptance/](docs/funnel-v2-acceptance/) |
+| **Кастомные скиллы** | `research` (точка входа воронки v2), `web-test` (браузерный smoke-тест через изолированный субагент), `youtube-search` (поиск по YouTube через yt-dlp), `source-finder` (поиск первоисточника факта), `grilling` / `grill-me` / `grill-with-docs` (интервью до общего понимания задачи), `resolving-merge-conflicts` |
 | **Документ-скиллы** | `xlsx`, `docx`, `pptx`, `pdf` — чтение/создание/правка офисных файлов (официальные скиллы [anthropics/skills](https://github.com/anthropics/skills), ставятся install-скриптом вместе с Python-зависимостями) |
-| **Кастомные агенты** | backend-engineer, frontend-engineer, security-auditor (QA через реальный браузер), documenter, web-test-runner |
+| **Кастомные агенты** | researcher (воронка v2), backend-engineer, frontend-engineer, security-auditor (QA через реальный браузер), documenter, web-test-runner |
 | **Команды** | `/team` — командный режим из нескольких агентов (+ вспомогательные скрипты `scripts/team-*` для tmux/iTerm-панелей) |
-| **Хуки** | perplexity-guard (принудительно направляет весь веб-поиск в Perplexity MCP), rtk-rewrite (авто-проксирование команд через rtk для экономии токенов), ultrathink-conditional, compact-limiter, context-mode-cache-heal |
+| **Хуки** | perplexity-guard (принудительно направляет весь веб-поиск в Perplexity MCP; субагенты пропускаются), validate-research-report.py (проверка формы отчёта researcher'а), rtk-rewrite (авто-проксирование команд через rtk для экономии токенов), ultrathink-conditional, compact-limiter, context-mode-cache-heal |
 | **CLI** | `rtk` (Rust Token Killer — экономит 60–90% токенов на dev-командах), `ezycopy` (чистый Markdown из любого URL), `yt-dlp` |
 | **CLAUDE.md / RTK.md** | Глобальные инструкции: правило 95% уверенности, проактивные скиллы, субагенты для рисёрча, web-fetch через ezycopy |
 | **rules/** | Те же правила отдельными модульными файлами (`claude/rules/`) — можно подключать выборочно вместо полного CLAUDE.md, см. `claude/rules/README.md` |
@@ -97,6 +98,7 @@ ezycopy --version
 
 ## Заметки
 
+- **Поиск «Воронка» v2**: принцип — «поисковик-синтезатор — инструмент обнаружения, а не ответа»; ответ строится из массы самостоятельно открытых источников. Полное описание — в `claude/CLAUDE.md` (раздел «Поиск в интернете») и `claude/agents/researcher.md`; результаты приёмки — `docs/funnel-v2-acceptance/`, тест-сьют — `docs/research-testsuite.md`. Опциональные каналы: Exa MCP и Firecrawl MCP (ключи хранить в `~/.claude/secrets.env`, chmod 600 — в git не попадает).
 - **Perplexity обязателен по дизайну сетапа**: хук `perplexity-guard.sh` блокирует встроенные `WebSearch`/`WebFetch` и публичный `curl`/`wget`, направляя весь поиск в Perplexity MCP. Если ключа нет — временно отключи guard (`touch ~/.claude/perplexity-guard.disabled`, окно 10 мин) или удали его записи из `settings.json`.
 - `settings.json` содержит `"permissions.deny": ["Bash(git push*)"]` — защита от случайного пуша агентом. Пуш делается руками или через `gh`. Убери, если не нужно.
 - `"language": "Russian"` — Claude отвечает по-русски. Поменяй/убери под себя.

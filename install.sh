@@ -40,9 +40,10 @@ fi
 echo "==> Копирую конфиги, хуки, скиллы, агентов..."
 cp "$REPO_DIR"/claude/CLAUDE.md "$CLAUDE_DIR/"
 cp "$REPO_DIR"/claude/RTK.md "$CLAUDE_DIR/"
+cp "$REPO_DIR"/claude/research-workflow.md "$CLAUDE_DIR/" 2>/dev/null || true
 cp "$REPO_DIR"/claude/statusline-command.sh "$CLAUDE_DIR/"
 cp -R "$REPO_DIR"/claude/hooks/. "$CLAUDE_DIR/hooks/"
-cp -R "$REPO_DIR"/claude/skills/web-test "$REPO_DIR"/claude/skills/youtube-search "$CLAUDE_DIR/skills/"
+cp -R "$REPO_DIR"/claude/skills/. "$CLAUDE_DIR/skills/"
 
 # --- Документ-скиллы Anthropic: xlsx, docx, pptx, pdf (github.com/anthropics/skills) ---
 if [ ! -d "$CLAUDE_DIR/skills/xlsx" ]; then
