@@ -1,0 +1,30 @@
+<!doctype html><meta charset=utf-8><title>подпись выпала из колонки</title>
+<style>
+  body{font:16px/1.6 Georgia,serif;color:#221f19;background:#e7e1d1;margin:0;padding:40px}
+  form{max-width:560px}
+  label,legend{display:block;font-weight:600;font-size:14px;margin-bottom:4px}
+  input[type=text],input[type=email],textarea{
+    display:block;width:100%;box-sizing:border-box;margin-bottom:20px;
+    font:16px/1.6 Georgia,serif;background:#f4f0e4;border:2px solid #6e5220;padding:8px}
+  textarea{resize:none;min-height:96px}
+  input[type=checkbox],input[type=radio]{
+    appearance:none;-webkit-appearance:none;width:20px;height:20px;
+    border:2px solid #6e5220;background:#f4f0e4;vertical-align:-4px}
+  input[type=radio]{border-radius:50%}
+  /* Дефект: декор внутри группы — рамка слева плюс отступ — уводит подпись «Срочность»
+     на 18px вправо от колонки, на которой стоят все остальные подписи формы. */
+  fieldset{border:none;border-left:2px solid #6e5220;margin:0 0 20px;padding:0 0 0 16px}
+</style>
+<h1>Дефект: одна подпись выпала из колонки</h1>
+<form>
+  <label for=n>Имя</label><input id=n name=n type=text>
+  <label for=e>Email</label><input id=e name=e type=email>
+  <fieldset>
+    <legend>Срочность</legend>
+    <label><input type=radio name=k value=a> Стандарт</label>
+    <label><input type=radio name=k value=b> Срочно</label>
+  </fieldset>
+  <label for=t>Опишите задачу</label><textarea id=t name=t></textarea>
+  <label><input type=checkbox name=ok> Согласен на обработку данных</label>
+  <button type=submit>Отправить</button>
+</form>

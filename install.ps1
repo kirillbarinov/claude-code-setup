@@ -49,8 +49,12 @@ Copy-Item (Join-Path $RepoDir "claude\CLAUDE.md")              $ClaudeDir -Force
 Copy-Item (Join-Path $RepoDir "claude\RTK.md")                 $ClaudeDir -Force
 Copy-Item (Join-Path $RepoDir "claude\statusline-command.sh")  $ClaudeDir -Force
 Copy-Item (Join-Path $RepoDir "claude\hooks\*")   (Join-Path $ClaudeDir "hooks")   -Recurse -Force
-Copy-Item (Join-Path $RepoDir "claude\skills\*")             (Join-Path $ClaudeDir "skills") -Recurse -Force
-if (Test-Path (Join-Path $RepoDir "claude\research-workflow.md")) { Copy-Item (Join-Path $RepoDir "claude\research-workflow.md") $ClaudeDir -Force }
+Copy-Item (Join-Path $RepoDir "claude\research-workflow.md") $ClaudeDir -Force -ErrorAction SilentlyContinue
+foreach ($s in Get-ChildItem (Join-Path $RepoDir "claude\skills") -Directory) {
+  $dst = Join-Path $ClaudeDir "skills\$($s.Name)"
+  if (Test-Path $dst) { Remove-Item $dst -Recurse -Force }
+  Copy-Item $s.FullName $dst -Recurse -Force
+}
 
 # --- Документ-скиллы Anthropic: xlsx, docx, pptx, pdf (github.com/anthropics/skills) ---
 if (-not (Test-Path (Join-Path $ClaudeDir "skills\xlsx"))) {
@@ -85,6 +89,59 @@ $homeFwd = $env:USERPROFILE -replace '\\', '/'
   Set-Content (Join-Path $ClaudeDir "settings.json") -Encoding UTF8
 Write-Host "   settings.json установлен (старый — в бэкапе)"
 
+# --- Дизайн-стек: агенты design-director/design-critic + ~135 скиллов ---
+# На Windows симлинки требуют прав администратора или developer mode, поэтому
+# скиллы копируются директориями, а не линкуются (обновление — повторный запуск скрипта).
+$DesignDir = Join-Path $env:LOCALAPPDATA "design-skills"
+if ($env:SKIP_DESIGN_STACK -ne "1") {
+  Write-Host "==> Дизайн-стек (~135 скиллов)..."
+  New-Item -ItemType Directory -Force -Path (Join-Path $DesignDir "_vendor") | Out-Null
+  $learned = Join-Path $DesignDir "LEARNED.md"
+  $learnedBak = ""
+  if (Test-Path $learned) { $learnedBak = "$learned.bak-$TS"; Copy-Item $learned $learnedBak -Force }
+  Copy-Item (Join-Path $RepoDir "design-skills\*") $DesignDir -Recurse -Force
+  if ($learnedBak) { Copy-Item $learnedBak $learned -Force; Write-Host "   LEARNED.md сохранён (копия из репозитория — в $learnedBak)" }
+
+  $vendors = @{
+    "ConardLi-garden-skills"       = "https://github.com/ConardLi/garden-skills.git"
+    "elayadesign-ai-design-skills" = "https://github.com/elayadesign/ai-design-skills.git"
+    "emilkowalski-skills"          = "https://github.com/emilkowalski/skills.git"
+    "jakubkrehel-skills"           = "https://github.com/jakubkrehel/skills.git"
+    "MengTo-Skills"                = "https://github.com/MengTo/Skills.git"
+  }
+  foreach ($v in $vendors.GetEnumerator()) {
+    $dst = Join-Path $DesignDir "_vendor\$($v.Key)"
+    if (Test-Path (Join-Path $dst ".git")) {
+      git -C $dst pull --quiet --ff-only 2>$null
+    } else {
+      Write-Host "   клонирую $($v.Key)..."
+      git clone --depth 1 --quiet $v.Value $dst 2>$null
+    }
+  }
+
+  $linked = 0; $missing = 0
+  foreach ($line in Get-Content (Join-Path $RepoDir "design-skills\SYMLINKS.txt")) {
+    if (-not $line.Trim()) { continue }
+    $name, $target = $line.Split("|")
+    $src = Join-Path $DesignDir ($target -replace "/", "\")
+    if (Test-Path $src) {
+      $dst = Join-Path $ClaudeDir "skills\$name"
+      if (Test-Path $dst) { Remove-Item $dst -Recurse -Force }
+      Copy-Item $src $dst -Recurse -Force
+      $linked++
+    } else { $missing++ }
+  }
+  Write-Host "   подключено скиллов: $linked (не найдено: $missing)"
+
+  $orScripts = Join-Path $DesignDir "openrouter-images\scripts"
+  if ((Test-Path $orScripts) -and -not (Test-Path (Join-Path $orScripts "node_modules"))) {
+    Push-Location $orScripts; npm install --silent 2>$null; Pop-Location
+  }
+  Write-Host "   ⚠️  Генерация ассетов требует OPENROUTER_API_KEY в окружении (https://openrouter.ai/keys)." -ForegroundColor Yellow
+} else {
+  Write-Host "   дизайн-стек пропущен (SKIP_DESIGN_STACK=1)"
+}
+
 # --- MCP: chrome-devtools ---
 $mcpList = claude mcp list 2>$null
 if ($mcpList -notmatch "chrome-devtools") {
@@ -116,7 +173,12 @@ if ($mcpList -notmatch "perplexity-mcp") {
 # --- Бинари для плагинов: LSP-серверы, sentry-cli, semgrep ---
 Write-Host "==> Бинари для плагинов (pyright, typescript-language-server, sentry-cli, semgrep)..."
 if (-not (Get-Command pyright -ErrorAction SilentlyContinue)) { npm install -g pyright }
-if (-not (Get-Command typescript-language-server -ErrorAction SilentlyContinue)) { npm install -g typescript-language-server typescript }
+# typescript@7 — нативный Go-порт без tsserver.js, tsls его не видит; ставим TypeScript 5 вложенно.
+if (-not (Get-Command typescript-language-server -ErrorAction SilentlyContinue)) {
+  npm install -g typescript-language-server
+  $tslsDir = Join-Path (npm root -g) "typescript-language-server"
+  if (Test-Path $tslsDir) { Push-Location $tslsDir; npm install typescript@5 --silent; Pop-Location }
+}
 if (-not (Get-Command sentry-cli -ErrorAction SilentlyContinue)) { npm install -g "@sentry/cli" }
 if (-not (Get-Command semgrep -ErrorAction SilentlyContinue)) {
   if (Get-Command python -ErrorAction SilentlyContinue) {
@@ -148,3 +210,7 @@ Write-Host "       semgrep, sentry, sentry-cli, hookify — официальны
 Write-Host "       context-mode, claude-mem, impeccable — из своих GitHub-маркетплейсов)."
 Write-Host "   2. Проверь хуки: /hooks, плагины: /plugin, MCP: claude mcp list."
 Write-Host "   3. Обновление GSD: /gsd:update. Справка: /gsd:help."
+
+Write-Host ""
+Write-Host "ℹ️  Компакт настроен профилем autoCompactWindow=253000 (порог срабатывания — 220k)."
+Write-Host "   Ниже 200000 прекомпьют отключается движком; см. раздел «Компакт» в README."

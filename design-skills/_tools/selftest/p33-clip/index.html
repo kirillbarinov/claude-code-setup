@@ -1,0 +1,34 @@
+<!doctype html><meta charset=utf-8><title>обрезанный текст, который негде дочитать</title>
+<style>
+  body{font:16px/1.6 -apple-system,Segoe UI,sans-serif;color:#1c1b19;background:#fbfaf7;margin:0;padding:48px}
+  h1{font-size:30px;margin:0 0 24px}
+  .cards{display:grid;grid-template-columns:repeat(3,220px);gap:20px;margin:0 0 32px}
+  .card{background:#fff;border:1px solid #e3ded3;padding:16px}
+  .card h2{font-size:17px;margin:0 0 8px}
+  /* Дефект 1: заголовок карточки обрезан многоточием в одну строку, полного текста
+     нет нигде — ни в title, ни по нажатию. */
+  .card h2{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* Дефект 2: описание схлопнуто до двух строк без «показать полностью». */
+  .card p{margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  /* Не дефект: та же обрезка, но полный текст лежит в title. */
+  .ok{max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0 0 12px}
+  /* Не дефект: обрезка внутри ссылки — есть куда нажать и дочитать. */
+  .link{display:block;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+</style>
+<h1>Реестр обращений</h1>
+<div class=cards>
+  <div class=card>
+    <h2>Восстановление кадастровой стоимости участка</h2>
+    <p>Комиссия принимает заявление в течение тридцати дней с момента подачи полного пакета документов, после чего назначает выездную оценку.</p>
+  </div>
+  <div class=card>
+    <h2>Перерасчёт по итогам оценки</h2>
+    <p>Если оценка завершилась в пользу заявителя, налоговая пересчитывает начисления за весь период с даты внесения оспоренной стоимости.</p>
+  </div>
+  <div class=card>
+    <h2>Согласование границ с соседями</h2>
+    <p>Акт подписывают все смежные землепользователи; отказ одного из них не останавливает процедуру, но переносит спор в суд.</p>
+  </div>
+</div>
+<p class=ok title="Уведомление о переносе слушания на четырнадцатое сентября">Уведомление о переносе слушания на четырнадцатое сентября</p>
+<a class=link href="#dело">Дело № 2026-114 о пересмотре кадастровой стоимости нежилого помещения</a>

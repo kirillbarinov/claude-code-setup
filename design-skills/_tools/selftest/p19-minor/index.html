@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Вопросы — сервисный центр</title>
+<style>
+  :root { --ink: #1c1c1c; --soft: #4a4a4a; --line: #d4cec2; }
+  body { margin: 0; background: #faf7f0; color: var(--ink);
+    font: 17px/1.6 Georgia, "Times New Roman", serif; }
+  .wrap { max-width: 780px; margin: 0 auto; padding: 48px 24px 96px; }
+  h1 { font-size: 38px; line-height: 1.15; margin: 0 0 8px; }
+  .lede { color: var(--soft); margin: 0 0 40px; }
+  p { font-size: 17px; }
+  .list { border-top: 1px solid var(--line); }
+  .item { border-bottom: 1px solid var(--line); padding: 16px 0; }
+  /* Дефект: вопрос — заголовок своего блока — набран 14px при абзаце 17px,
+     то есть мельче обычного текста и вровень с подписями. Пять таких строк
+     подряд глаз читает как список микроподписей и пропускает секцию. */
+  .item summary { cursor: pointer; font-size: 14px; font-weight: 600; list-style: none;
+    display: flex; justify-content: space-between; gap: 16px; min-height: 44px; align-items: center; }
+  .item summary::-webkit-details-marker { display: none; }
+  .item summary::after { content: "+"; font-family: ui-monospace, monospace; color: #6e5220; }
+  .item[open] summary::after { content: "\2212"; }
+  .item p { margin: 12px 0 0; color: var(--soft); }
+  a { color: #52401a; }
+  :focus-visible { outline: 3px solid #6e5220; outline-offset: 2px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Вопросы о ремонте</h1>
+  <p class="lede">Здесь собраны вопросы, которые задают чаще всего перед тем, как отдать вещь в работу: про сроки, гарантию, стоимость диагностики и что делать, если деталь снята с производства.</p>
+  <div class="list">
+    <details class="item"><summary>Сколько занимает диагностика?</summary>
+      <p>Обычно один рабочий день: мастер разбирает корпус, проверяет питание и шлейфы, после чего мы называем итоговую стоимость работ и согласовываем её до начала ремонта.</p></details>
+    <details class="item"><summary>Что входит в гарантию на работы?</summary>
+      <p>Гарантия покрывает и работу, и установленные детали в течение года. Если та же неисправность повторится, мы разбираем аппарат повторно уже без оплаты диагностики и работ.</p></details>
+    <details class="item"><summary>Можно ли привезти технику без упаковки?</summary>
+      <p>Можно, но лучше проложить корпус мягким: на приёмке мы фиксируем все сколы и царапины в акте, и спорные повреждения проще исключить заранее, чем оспаривать их потом.</p></details>
+    <details class="item"><summary>Как быть, если деталь снята с производства?</summary>
+      <p>Ищем разборные аналоги и восстанавливаем плату на компонентном уровне. Такой ремонт занимает дольше обычного, поэтому срок мы называем отдельно и до начала работ.</p></details>
+    <details class="item"><summary>Работаете ли вы с юридическими лицами?</summary>
+      <p>Да, по договору с закрывающими документами. Для парка техники выделяем отдельного инженера и держим подменный фонд, чтобы рабочие места не простаивали во время ремонта.</p></details>
+  </div>
+</div>
+</body>
+</html>

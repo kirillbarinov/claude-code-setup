@@ -1,0 +1,32 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Прейскурант</title>
+<style>
+  :root{--ink:#221f19;--soft:#4a4536;--line:#c9c0a8;--paper:#f4f0e4;--brass:#6e5220}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 ui-sans-serif,system-ui,sans-serif;padding:40px}
+  h1{font-size:28px;margin:0 0 24px}
+  table{border-collapse:collapse;width:100%;max-width:720px}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line)}
+  thead th{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);font-weight:500}
+  tbody th[scope=row]{font-weight:600;color:var(--ink)}
+  td.price{font-weight:600;color:var(--brass)}
+  tfoot th,tfoot td{border-top:2px solid var(--brass)}
+  /* Дефект: заголовок итоговой строки ослаблен ровно на одну ступень — 500 против 600
+     у шести собратьев. Для другого ранга этого мало, для незаметного — много. */
+  tfoot th[scope=row]{font-weight:500}
+</style></head><body>
+<h1>Прейскурант</h1>
+<table>
+  <thead><tr><th scope="col">Работа</th><th scope="col">Срок</th><th scope="col">Цена</th></tr></thead>
+  <tbody>
+    <tr><th scope="row">Реставрация корешка</th><td>5–7 дней</td><td class="price">2 400 ₽</td></tr>
+    <tr><th scope="row">Реставрация блока</th><td>10–20 дней</td><td class="price">4 200 ₽</td></tr>
+    <tr><th scope="row">Переплёт диссертации</th><td>3–7 дней</td><td class="price">1 800 ₽</td></tr>
+    <tr><th scope="row">Семейный архив</th><td>7–10 дней</td><td class="price">3 500 ₽</td></tr>
+    <tr><th scope="row">Золочение обреза</th><td>2–4 дня</td><td class="price">1 200 ₽</td></tr>
+    <tr><th scope="row">Тиснение на крышке</th><td>1–2 дня</td><td class="price">900 ₽</td></tr>
+  </tbody>
+  <tfoot><tr><th scope="row">Срочный заказ</th><td>2–3 дня</td><td class="price">+60% к цене</td></tr></tfoot>
+</table>
+</body></html>

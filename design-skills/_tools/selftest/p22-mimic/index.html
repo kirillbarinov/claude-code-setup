@@ -1,0 +1,37 @@
+<!doctype html><meta charset=utf-8><title>контрол притворяется дефолтным</title>
+<style>
+  body{font:16px/1.6 Georgia,serif;color:#221f19;background:#e7e1d1;margin:0;padding:16px}
+  /* Дефект: системный вид снят, но взамен нарисовано ровно то, что рисует браузер сам —
+     квадрат 18px, серая волосяная линия 1px, радиус 3px. Проба 8 такое пропускает:
+     стили-то от дефолта отличаются. Проба 21 обязана поймать. */
+  input[type=checkbox],input[type=radio]{
+    appearance:none;-webkit-appearance:none;
+    width:18px;height:18px;border:1px solid #6b6b6b;border-radius:3px;background:#fff;
+    font-family:Georgia,serif;
+  }
+  input[type=radio]{border-radius:50%}
+  input[type=text],textarea{font:16px/1.6 Georgia,serif;background:#f4f0e4;border:2px solid #6e5220;padding:8px}
+  /* Дефект: ручка resize, которую браузер рисует сам и перекрасить нельзя. */
+  textarea{resize:vertical;min-height:96px}
+  /* Дефект: свой значок списка нарисован штрихом в 6% от 7px — 0.4px, тоньше пикселя. */
+  select{
+    appearance:none;-webkit-appearance:none;width:100%;padding-right:38px;
+    font:16px/1.6 Georgia,serif;background-color:#f4f0e4;border:2px solid #6e5220;
+    background-image:
+      linear-gradient(45deg,transparent 50%,#6e5220 50%,#6e5220 56%,transparent 56%),
+      linear-gradient(135deg,transparent 44%,#6e5220 44%,#6e5220 50%,transparent 50%);
+    background-position:right 20px center,right 13px center;
+    background-size:7px 7px,7px 7px;background-repeat:no-repeat;
+  }
+</style>
+<h1>Дефект: свой контрол, неотличимый от системного</h1>
+<form>
+  <label for=n>Имя</label><input id=n name=n type=text>
+  <label><input type=checkbox name=ok> Согласен на обработку данных</label>
+  <label><input type=radio name=k value=a> Первый вариант</label>
+  <label><input type=radio name=k value=b> Второй вариант</label>
+  <label for=s>Тип работы</label>
+  <select id=s name=s><option>Реставрация<option>Переплёт</select>
+  <label for=t>Что нужно сделать</label><textarea id=t name=t></textarea>
+  <button type=submit>Отправить</button>
+</form>

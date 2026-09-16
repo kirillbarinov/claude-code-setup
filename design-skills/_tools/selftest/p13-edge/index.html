@@ -1,0 +1,28 @@
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Призрачный контур поля</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 32px; font: 16px/1.5 system-ui, sans-serif; color: #1c1a17;
+         background: #e7e1d1; max-width: 100%; }
+  h1 { font-size: 1.6rem; margin: 0 0 24px; }
+  a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid #6e5220; outline-offset: 2px; }
+  form { display: grid; gap: 16px; max-width: 420px; }
+  .field { display: grid; gap: 6px; }
+  label { font-size: 0.9rem; color: #4a4536; }
+  /* Дефект: рамка нарисована, но #b8ad90 на фоне #e7e1d1 даёт 1.96:1 при требуемых 3:1.
+     Нижняя линия читается (5.57:1), поэтому поле всё-таки опознаётся — и боковые линии
+     оказываются призраком: они есть, их видно как размытое пятно, опереться на них нельзя. */
+  input, textarea { font: inherit; padding: 10px 12px; background: #f4f0e4;
+                    border: 1px solid #b8ad90; border-bottom: 2px solid #6e5220;
+                    border-radius: 3px 3px 0 0; color: #1c1a17; }
+  textarea { min-height: 90px; resize: vertical; }
+  button { font: inherit; padding: 10px 20px; background: #6e5220; color: #fbf8f1;
+           border: 1px solid #6e5220; border-radius: 3px; cursor: pointer; }
+</style>
+<h1>Заявка на выписку</h1>
+<form>
+  <div class="field"><label for="who">Кому выдаётся</label><input id="who" name="who" type="text" autocomplete="name"></div>
+  <div class="field"><label for="why">Основание</label><textarea id="why" name="why"></textarea></div>
+  <button type="submit">Отправить</button>
+</form>

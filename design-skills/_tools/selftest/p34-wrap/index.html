@@ -1,0 +1,53 @@
+<!doctype html><meta charset=utf-8><title>пункт ряда переносится, сосед — нет</title>
+<style>
+  body{font:16px/1.6 -apple-system,Segoe UI,sans-serif;color:#1c1b19;background:#fbfaf7;margin:0}
+  header{display:flex;flex-wrap:wrap;align-items:center;gap:28px;padding:14px 24px;border-bottom:1px solid #ddd7c9}
+  .brand{font-weight:700;white-space:nowrap}
+  .tel{white-space:nowrap;text-decoration:none;padding:10px 0}
+  main{padding:40px 24px;max-width:720px}
+  h1{font-size:30px;margin:0 0 16px}
+  a{color:#1c1b19}
+  a:focus-visible{outline:2px solid #b23b2e;outline-offset:3px}
+  /* Дефект: ряд пунктов меню ужимается вместе с окном и переносит слова внутри
+     пунктов. На 1440 ряд ещё в одну строку, на 600 он уже честно столбик, а между
+     ними соседи стоят в одну, две и три строки. Переполнения нет — механически цело. */
+  .nav{display:flex;gap:18px;flex:1;justify-content:center}
+  .nav a{display:block;padding:10px 0;text-decoration:none}
+  /* Не дефект: тот же ряд, но подписям запрещён перенос — они держат одну строку
+     на любой ширине и уходят в столбик тем же брейкпоинтом. */
+  .tabs{display:flex;flex-wrap:wrap;gap:18px;padding:14px 24px;border-bottom:1px solid #ddd7c9}
+  .tabs a{display:block;padding:10px 0;text-decoration:none;white-space:nowrap}
+  
+  /* Ниже 420 ряд честно свёрнут: проба смотрит промежуточные ширины, где ряд ещё ряд.
+     Правило стоит последним — иначе .tabs ниже перебило бы display:none той же силой. */
+  @media (max-width:420px){
+    .nav,.tabs{display:none}
+    header{gap:8px;padding:8px 12px}
+    .brand{font-size:15px}
+    .tel{font-size:14px;padding:12px 0}
+    main{padding:16px}
+    h1{font-size:24px}
+  }
+</style>
+<header>
+  <span class=brand>Веха · кадастровые инженеры</span>
+  <nav class=nav>
+    <a href="#p">Порядок работ</a>
+    <a href="#c">Сроки и цены</a>
+    <a href="#o">Отказы Росреестра</a>
+    <a href="#w">Работы</a>
+    <a href="#z">Заявка</a>
+  </nav>
+  <a class=tel href="tel:+74985001462">+7 (498) 500-14-62</a>
+</header>
+<nav class=tabs>
+  <a href="#t1">Все обращения</a>
+  <a href="#t2">На рассмотрении</a>
+  <a href="#t3">Приостановленные</a>
+  <a href="#t4">Закрытые</a>
+</nav>
+<main>
+  <h1>Реестр обращений</h1>
+  <p>Комиссия принимает заявление в течение тридцати дней с момента подачи полного пакета документов, после чего назначает выездную оценку участка.</p>
+  <p>Если оценка завершилась в пользу заявителя, налоговая пересчитывает начисления за весь период с даты внесения оспоренной стоимости.</p>
+</main>

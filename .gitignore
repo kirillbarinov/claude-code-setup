@@ -1,0 +1,10 @@
+node_modules/
+*.bak
+*.bak-*
+*.bak.*
+*.bak[0-9]*
+*.tgz
+*.log
+.DS_Store
+design-skills/_vendor/
+design-skills/_design-md/plans/

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Мастерская — гарантии</title>
+<style>
+  body { margin: 0; font: 16px/1.55 Georgia, serif; color: #221f19; background: #f6f3ea; }
+  main { max-width: 900px; margin: 40px auto; padding: 0 24px; }
+  h1 { font-size: 28px; margin: 0 0 24px; }
+  .seals { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; align-items: start; }
+  .seal { display: flex; flex-direction: column; align-items: flex-start; }
+  .seal__mark { width: 96px; height: 96px; border: 3px double #6e5220; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: 26px; color: #6e5220; }
+  .seal__caption { margin: 16px 0 0; }
+  @media (max-width: 720px) { .seals { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Гарантии мастерской</h1>
+  <!-- дефект: выделенный зачин стоит у одной подписи из трёх — унификация
+       брошена на середине, глаз читает не «этот важнее», а недоделку -->
+  <div class="seals">
+    <div class="seal">
+      <div class="seal__mark">1</div>
+      <p class="seal__caption"><strong>Гарантия на переплёт.</strong> Разошёлся блок в первые три года — сшиваем заново без доплаты.</p>
+    </div>
+    <div class="seal">
+      <div class="seal__mark">2</div>
+      <p class="seal__caption">Сшито на пяти бинтах, клеевого корешка, который трескается на третий год, у нас нет.</p>
+    </div>
+    <div class="seal">
+      <div class="seal__mark">3</div>
+      <p class="seal__caption">Издания с XVIII века, методы обратимы: оригинал укрепляется, а не заменяется новоделом.</p>
+    </div>
+  </div>
+</main>
+</body>
+</html>

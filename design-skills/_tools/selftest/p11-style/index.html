@@ -1,0 +1,27 @@
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Разнобой у соседей</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 32px; font: 16px/1.5 system-ui, sans-serif; color: #1c1a17; background: #fbf8f1; max-width: 100%; }
+  h1 { font-size: 1.6rem; margin: 0 0 24px; }
+  a:focus-visible, button:focus-visible { outline: 2px solid #7a5a1e; outline-offset: 2px; }
+  .row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; align-items: start; }
+  .card { display: grid; grid-template-rows: auto auto; row-gap: 12px; justify-items: start; }
+  .shape { width: 140px; height: 140px; border-radius: 50%; display: flex; align-items: center;
+           justify-content: center; font-weight: 600; font-size: 2rem; color: #6b4c14;
+           border: 3px double #6b4c14; background: radial-gradient(circle at 35% 30%, #fff, #f0e9d8); }
+  /* Дефект: у первой фигуры двойная латунная обводка и градиент, у двух соседних —
+     плоская серая рамка без градиента. Роль одна, язык разный. */
+  .card--flat .shape { border: 1px solid #cfc7b4; background: #f0e9d8; }
+  .cap { font-size: 0.9rem; color: #4a463d; margin: 0; }
+  /* Три фигуры по 140px в узкое окно не помещаются; фикстура должна ловить только свой
+     дефект, поэтому переполнение убрано — иначе на неё ругается чужая проба. */
+  @media (max-width: 640px) { .row { grid-template-columns: 1fr; } }
+</style>
+<h1>Дефект: соседи одной роли нарисованы разным языком</h1>
+<div class="row">
+  <div class="card"><div class="shape">12</div><p class="cap">лет мастерской</p></div>
+  <div class="card card--flat"><div class="shape">5</div><p class="cap">лет гарантии</p></div>
+  <div class="card card--flat"><div class="shape">XVIII</div><p class="cap">век — самая старая книга</p></div>
+</div>

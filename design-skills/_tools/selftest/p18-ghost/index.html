@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Заявка</title>
+<style>
+  :root { color-scheme: light; }
+  body { margin: 0; background: #e7e1d1; color: #221f19;
+    font: 16px/1.5 Georgia, "Times New Roman", serif; }
+  main { max-width: 1120px; margin: 0 auto; padding: 48px 24px; }
+  h1 { font-size: 30px; margin: 0 0 8px; }
+  p.lead { margin: 0 0 28px; max-width: 60ch; }
+  form { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 24px; }
+  label { display: block; font-size: 14px; margin-bottom: 6px; }
+  /* Заливка отличается от подложки на 1.15:1 — её не видно у поля в 44px,
+     но она набирает площадь у textarea и читается там как залитый бокс. */
+  input, textarea { font: inherit; width: 100%; box-sizing: border-box;
+    padding: 14px 12px 10px; background: #f4f0e4; border: none;
+    border-bottom: 2px solid #6e5220; border-radius: 3px 3px 0 0; color: #221f19;
+    min-height: 44px; }
+  .wide { grid-column: 1 / -1; }
+  textarea { min-height: 96px; resize: vertical; }
+  button { grid-column: 1 / -1; justify-self: start; font: inherit;
+    min-height: 44px; padding: 12px 24px; background: #4a4536; color: #f6f3ea;
+    border: 1px solid #3a3730; border-radius: 3px; cursor: pointer; }
+  @media (max-width: 700px) { form { grid-template-columns: 1fr; } }
+</style></head>
+<body>
+<main>
+  <h1>Расчёт стоимости</h1>
+  <p class="lead">Опишите книгу, и мастер вернётся с оценкой в течение рабочего дня.</p>
+  <form>
+    <div><label for="n">Имя</label><input id="n" type="text" name="n" autocomplete="name"></div>
+    <div><label for="e">Email</label><input id="e" type="email" name="e" autocomplete="email" inputmode="email"></div>
+    <div><label for="t">Телефон</label><input id="t" type="tel" name="t" autocomplete="tel" inputmode="tel"></div>
+    <div><label for="v">Объём, страниц</label><input id="v" type="number" name="v" inputmode="numeric"></div>
+    <div class="wide"><label for="d">Опишите состояние и задачу</label>
+      <textarea id="d" name="d" rows="3"></textarea></div>
+    <button type="submit">Отправить заявку</button>
+  </form>
+</main>
+</body></html>

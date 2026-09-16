@@ -1,0 +1,14 @@
+<!doctype html><meta charset=utf-8><meta name="viewport" content="width=device-width, initial-scale=1"><title>раскладка в движении</title>
+<style>
+body{font:16px/1.6 system-ui;color:#1a1a1a;background:#fff;margin:0;padding:24px}
+.к{display:inline-block;padding:12px 20px;margin:0 8px 16px;background:#eee;border:0;transition:color .15s}
+.w{transition:width .3s}
+.h{animation:рост 1s infinite alternate}
+@keyframes рост{to{height:60px}}
+.reveal{opacity:0}
+</style>
+<main>
+<h1>Раскладка в движении</h1>
+<p><button class="к w">Ширина едет</button><button class="к h">Высота едет</button></p>
+<p class="reveal">Абзац, который без JS не появится никогда.</p>
+</main>

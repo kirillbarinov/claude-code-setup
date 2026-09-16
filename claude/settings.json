@@ -1,6 +1,7 @@
 {
   "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "ARCHIFY_UPDATE_CHECK_DISABLED": "1"
   },
   "permissions": {
     "allow": [
@@ -17,22 +18,12 @@
     "deny": [
       "Bash(git push --force*)",
       "Bash(rm -rf /*)",
-      "Bash(curl * | bash*)",
-      "Bash(wget * | bash*)"
+      "Bash(wget * | bash*)",
+      "Bash(git push*)",
+      "Bash(curl * | bash*)"
     ]
   },
-  "model": "claude-fable-5[1m]",
   "hooks": {
-    "PreCompact": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "__HOME__/.claude/hooks/compact-limiter.sh"
-          }
-        ]
-      }
-    ],
     "UserPromptSubmit": [
       {
         "hooks": [
@@ -138,6 +129,15 @@
             "command": "bash \"__HOME__/.claude/hooks/gsd-session-state.sh\""
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"__HOME__/.claude/hooks/tmux-swarm-reaper.sh\"",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -168,6 +168,17 @@
             "type": "command",
             "command": "\"/opt/homebrew/bin/node\" \"__HOME__/.claude/hooks/gsd-read-injection-scanner.js\"",
             "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"__HOME__/.claude/hooks/tmux-swarm-reaper.sh\"",
+            "timeout": 10
           }
         ]
       }
@@ -213,7 +224,7 @@
   },
   "language": "Russian",
   "effortLevel": "medium",
-  "autoCompactWindow": 140000,
+  "autoCompactWindow": 253000,
   "skipDangerousModePermissionPrompt": true,
   "teammateMode": "tmux",
   "voiceEnabled": true

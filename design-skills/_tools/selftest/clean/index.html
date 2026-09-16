@@ -1,0 +1,24 @@
+<!doctype html><meta charset=utf-8><title>чисто</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{--ink:#1a1a1a}
+body{font:16px/1.6 system-ui;color:var(--ink);background:#fff;margin:0;padding:24px;max-width:60ch}
+h1{font-size:2rem;line-height:1.15;margin:0 0 .5em}
+p{margin:0 0 1em}
+a{color:#0a4d8c}
+</style>
+<main>
+<h1>Чистая страница</h1>
+<p>Ни одна проба не должна на ней сработать: контраст с запасом, ничего не переполняется,
+анимаций нет, форм нет, фигур нет, сетки нет, консоль молчит.</p>
+<p><a href="#">Обычная ссылка</a> с видимым фокусом по умолчанию.</p>
+
+<!-- Штатный «visually hidden»: содержимое читает скринридер, глаз не видит ничего.
+     Стоит здесь нарочно — проба переполнения обязана молчать на нём. Раньше она
+     считала и выход текста за границы контейнера в 1px, и сам контейнер
+     «прокручиваемым регионом без подсказки». -->
+<style>
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+</style>
+<p class="sr-only">Прайс-лист: вид работы, срок, цена от, примечание.</p>
+</main>

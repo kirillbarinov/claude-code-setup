@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Мастерская — подписка на переплёт</title>
+<style>
+  :root { --ink:#1e1c18; --ink-soft:#5a544a; --paper:#f6f2e9; --accent:#7a5a1e; --line:#d8cfbc; }
+  * { box-sizing:border-box }
+  body { margin:0; background:var(--paper); color:var(--ink);
+         font:16px/1.6 -apple-system, "Helvetica Neue", Arial, sans-serif }
+  .wrap { max-width:640px; margin:0 auto; padding:64px 24px }
+  h1 { font-size:2rem; line-height:1.15; margin:0 0 8px }
+  .lead { color:var(--ink-soft); margin:0 0 40px; max-width:52ch }
+  .card { border:1px solid var(--line); border-radius:4px; padding:28px 32px; background:#fffdf8 }
+  .card__name { margin:0 0 4px; font-size:1.05rem; font-weight:600 }
+  .card__note { margin:0 0 20px; color:var(--ink-soft); font-size:0.95rem }
+  /* Дефект: сужение пробела объявлено на моноширинной строке цены — там оно к месту,
+     разделитель разрядов в mono занимает целое знакоместо. Но word-spacing наследуется
+     потомками в вычисленных пикселях, а не в em: -0.35em от кегля 13px приходят в
+     крупную цифру как -4.55px и съедают там уже не лишнее знакоместо, а весь просвет
+     перед знаком рубля — «4 900 ₽» читается как «4 900₽». */
+  .card__price { font-family: ui-monospace, "SF Mono", Menlo, monospace;
+                 font-size:13px; color:var(--ink-soft); word-spacing:-0.35em; margin:0 }
+  .card__price b { font-family:Georgia, "Times New Roman", serif; font-size:34px;
+                   font-weight:600; color:var(--ink); letter-spacing:-.015em }
+</style></head>
+<body>
+  <div class="wrap">
+    <h1>Подписка на переплёт</h1>
+    <p class="lead">Мастерская берёт книгу раз в квартал: разбирает блок, долива­ет утраты
+      японской бумагой и возвращает в новом переплёте.</p>
+    <div class="card">
+      <p class="card__name">Годовой круг</p>
+      <p class="card__note">Четыре книги, доставка курьером в оба конца.</p>
+      <p class="card__price"><b>4 900 ₽</b> вместо 6 580 ₽ в рознице</p>
+    </div>
+  </div>
+</body></html>

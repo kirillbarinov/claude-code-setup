@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Мастерская — контакты</title>
+<style>
+  body { margin: 0; font: 16px/1.55 Georgia, serif; color: #221f19; background: #f6f3ea; }
+  main { max-width: 900px; margin: 32px auto; padding: 0 24px; }
+  h1 { font-size: 26px; margin: 0 0 20px; }
+  /* Мишени высотой 26px: три ссылки подряд, между которыми палец не разбирает. */
+  nav ul { list-style: none; display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 4px; margin: 0 0 28px; padding: 0; }
+  nav a { display: block; padding: 2px 0; font-size: 14px; color: #4a5a3c;
+    text-decoration: none; border-bottom: 2px solid transparent; }
+  nav a:hover, nav a:focus-visible { border-bottom-color: #6e5220; }
+  p { max-width: 62ch; }
+  a.inline { color: #4a5a3c; }
+  button { font: inherit; padding: 12px 20px; min-height: 44px; background: #4a5a3c;
+    color: #f6f3ea; border: 1px solid #3a4730; border-radius: 3px; cursor: pointer; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Как нас найти</h1>
+  <nav aria-label="Разделы">
+    <ul>
+      <li><a href="#a">Услуги</a></li>
+      <li><a href="#b">Сроки</a></li>
+      <li><a href="#c">Цены</a></li>
+    </ul>
+  </nav>
+  <p>Мастерская работает с понедельника по пятницу. Записаться можно
+    <a class="inline" href="#z">по телефону</a> или письмом — ответ приходит в тот же день.</p>
+  <p><button type="button">Написать нам</button></p>
+</main>
+</body>
+</html>

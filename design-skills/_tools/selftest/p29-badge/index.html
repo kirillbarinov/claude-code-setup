@@ -1,0 +1,25 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Как мы работаем</title>
+<style>
+  body { margin:0; font:16px/1.6 Georgia, serif; color:#1c1b19; background:#fbf8f3; padding:48px 32px; }
+  h1 { font-size:34px; line-height:1.15; margin:0 0 32px; }
+  .steps { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:28px; }
+  .step { display:flex; gap:20px; align-items:flex-start; }
+  /* Диаметр здесь никто не задавал — круг раздувается содержимым: у «10» две цифры,
+     и кружок выезжает шире соседей. Ранг у всех шагов один, разница не заявлена. */
+  .step__badge {
+    display:inline-block; padding:14px 16px; border-radius:50%;
+    background:#7b2d26; color:#fbf8f3; font-size:22px; line-height:1;
+    text-align:center; flex:none;
+  }
+  .step__body h2 { font-size:20px; margin:0 0 6px; }
+  .step__body p { margin:0; color:#5a554d; max-width:34em; }
+</style></head><body>
+<h1>Как мы работаем</h1>
+<ol class="steps">
+  <li class="step"><span class="step__badge">1</span><div class="step__body"><h2>Осмотр</h2><p>Смотрим переплёт и блок, определяем объём работ.</p></div></li>
+  <li class="step"><span class="step__badge">4</span><div class="step__body"><h2>Смета</h2><p>Считаем стоимость по каждой операции отдельно.</p></div></li>
+  <li class="step"><span class="step__badge">10</span><div class="step__body"><h2>Сдача</h2><p>Отдаём книгу в футляре и с описанием работ.</p></div></li>
+</ol>
+</body></html>

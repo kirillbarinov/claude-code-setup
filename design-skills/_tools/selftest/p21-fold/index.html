@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Столярная мастерская «Кедр» — мебель на заказ</title>
+<style>
+  :root { --ink: #23201c; --soft: #5d564c; --line: #d8d0c2; --paper: #f6f2e9; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 17px/1.6 Georgia, "Times New Roman", serif; color: var(--ink); background: var(--paper); }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 32px; }
+  header.top { background: #2f3a30; color: #f3efe4; padding: 20px 0; }
+  header.top .wrap { display: flex; justify-content: space-between; align-items: center; gap: 24px; }
+  .brand { font-size: 22px; font-weight: 700; letter-spacing: .02em; }
+  nav a { color: #f3efe4; text-decoration: none; margin-left: 24px; display: inline-block; min-height: 44px; line-height: 44px; }
+  h1 { font-size: 46px; line-height: 1.12; margin: 56px 0 20px; max-width: 20ch; }
+  h2 { font-size: 32px; line-height: 1.2; margin: 56px 0 16px; }
+  p { max-width: 68ch; }
+  .lead { font-size: 20px; color: var(--soft); }
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; margin: 32px 0 64px; }
+  .card { border-top: 2px solid var(--ink); padding-top: 14px; display: flex; flex-direction: column; }
+  .card .price { margin-top: auto; padding-top: 12px; }
+  .card h3 { margin: 0 0 8px; font-size: 21px; }
+  .card p { font-size: 15px; color: var(--soft); margin: 0; }
+  .price { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 24px; font-weight: 600;
+           /* В mono пробел равен знакоместу цифры; разделитель разрядов сужаем, иначе
+              число распадается — но это дефект другой пробы, здесь он лишний. */
+           word-spacing: -0.35em; }
+  footer { border-top: 1px solid var(--line); margin-top: 72px; padding: 32px 0 56px; color: var(--soft); }
+  footer .wrap { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+  footer p { margin: 0 0 6px; }
+  footer a { color: var(--soft); }
+  a:focus-visible, nav a:focus-visible { outline: 2px solid #b07d3a; outline-offset: 3px; }
+  @media (max-width: 900px) {
+    .wrap { padding: 0 20px; }
+    header.top .wrap { flex-direction: column; align-items: flex-start; gap: 4px; }
+    header.top nav { display: flex; flex-wrap: wrap; width: 100%; }
+    nav a { margin: 0; width: 50%; }
+    h1 { font-size: 34px; margin-top: 36px; }
+    h2 { font-size: 26px; }
+    .cards { grid-template-columns: 1fr; gap: 24px; }
+    footer .wrap { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <span class="brand">Мастерская «Кедр»</span>
+    <!-- Дефект: восемь равнозначных ссылок на узкой ширине раскладываются в четыре ряда
+         и съедают верх первого экрана до того, как показан заголовок. -->
+    <nav><a href="#work">Работы</a><a href="#price">Цены</a><a href="#contacts">Контакты</a><a href="#work">Столы</a><a href="#work">Стеллажи</a><a href="#work">Реставрация</a><a href="#price">Доставка</a><a href="#price">Гарантия</a></nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <h1>Мебель из массива, собранная на шипах, а не на конфирматах</h1>
+  <p class="lead">Работаем с дубом, ясенем и кедром. Каждый стол собирается под размеры комнаты и сушится в мастерской не меньше трёх недель до отгрузки.</p>
+
+  <h2 id="work">Что делаем</h2>
+  <div class="cards">
+    <div class="card">
+      <h3>Обеденные столы</h3>
+      <p>Столешница из цельной ламели, подстолье на клиновом соединении. Разбирается для переезда без потери жёсткости.</p>
+      <p class="price">от 84 000 ₽ за стол</p>
+    </div>
+    <div class="card">
+      <h3>Стеллажи и шкафы</h3>
+      <p>Полки на регулируемых опорах, задняя стенка в паз. Под наклонный пол выставляем по месту.</p>
+      <p class="price">от 46 000 ₽ за секцию</p>
+    </div>
+    <div class="card">
+      <h3>Реставрация</h3>
+      <p>Перебираем расшатанные соединения, снимаем старый лак, восстанавливаем шпон по родному рисунку.</p>
+      <p class="price">от 12 000 ₽ за предмет</p>
+    </div>
+  </div>
+
+  <h2 id="price">Как считается работа</h2>
+  <p>Цена складывается из породы дерева, площади склейки и способа отделки. Масло дешевле лака в работе, но требует обновления раз в два года; на кухонные столешницы мы советуем именно его — пятно от вина выводится локально, без перешлифовки всей плоскости.</p>
+  <p>Замер в пределах города бесплатный, срок изготовления обычно от четырёх до семи недель в зависимости от загрузки сушильной камеры.</p>
+</main>
+
+<footer id="contacts">
+  <div class="wrap">
+    <div>
+      <p><strong>Мастерская «Кедр»</strong></p>
+      <p>Столярные работы из массива</p>
+    </div>
+    <div>
+      <p>Телефон: <a href="tel:+78124418063">+7 (812) 441-80-63</a></p>
+      <p>Почта: <a href="mailto:stol@kedr-master.ru">stol@kedr-master.ru</a></p>
+    </div>
+    <div>
+      <p>Приём по записи</p>
+      <p>Пн–Сб, 9:00–18:00</p>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

@@ -40,10 +40,14 @@ fi
 echo "==> Копирую конфиги, хуки, скиллы, агентов..."
 cp "$REPO_DIR"/claude/CLAUDE.md "$CLAUDE_DIR/"
 cp "$REPO_DIR"/claude/RTK.md "$CLAUDE_DIR/"
-cp "$REPO_DIR"/claude/research-workflow.md "$CLAUDE_DIR/" 2>/dev/null || true
 cp "$REPO_DIR"/claude/statusline-command.sh "$CLAUDE_DIR/"
 cp -R "$REPO_DIR"/claude/hooks/. "$CLAUDE_DIR/hooks/"
-cp -R "$REPO_DIR"/claude/skills/. "$CLAUDE_DIR/skills/"
+cp "$REPO_DIR"/claude/research-workflow.md "$CLAUDE_DIR/" 2>/dev/null || true
+for s in "$REPO_DIR"/claude/skills/*/; do
+  name="$(basename "$s")"
+  rm -rf "${CLAUDE_DIR:?}/skills/$name"
+  cp -R "$s" "$CLAUDE_DIR/skills/"
+done
 
 # --- Документ-скиллы Anthropic: xlsx, docx, pptx, pdf (github.com/anthropics/skills) ---
 if [ ! -d "$CLAUDE_DIR/skills/xlsx" ]; then
@@ -72,6 +76,68 @@ chmod +x "$CLAUDE_DIR"/hooks/*.sh "$CLAUDE_DIR/statusline-command.sh" "$CLAUDE_D
 # settings.json: подставляем реальный $HOME вместо плейсхолдера
 sed "s|__HOME__|$HOME|g" "$REPO_DIR/claude/settings.json" > "$CLAUDE_DIR/settings.json"
 echo "   settings.json установлен (старый — в бэкапе)"
+
+# --- Дизайн-стек: агенты design-director/design-critic + ~135 скиллов ---
+# Свои скиллы живут в ~/.local/share/design-skills, чужие подтягиваются из апстримов,
+# в ~/.claude/skills раскладываются симлинками по манифесту design-skills/SYMLINKS.txt.
+DESIGN_DIR="$HOME/.local/share/design-skills"
+if [ "${SKIP_DESIGN_STACK:-0}" != "1" ]; then
+  echo "==> Дизайн-стек (~135 скиллов)..."
+  mkdir -p "$DESIGN_DIR/_vendor"
+  # свои скиллы и утилиты; личную память цикла (LEARNED.md) не затираем
+  LEARNED_BAK=""
+  if [ -f "$DESIGN_DIR/LEARNED.md" ]; then
+    LEARNED_BAK="$DESIGN_DIR/LEARNED.md.bak-$TS"
+    cp "$DESIGN_DIR/LEARNED.md" "$LEARNED_BAK"
+  fi
+  cp -R "$REPO_DIR"/design-skills/. "$DESIGN_DIR/"
+  if [ -n "$LEARNED_BAK" ]; then
+    cp "$LEARNED_BAK" "$DESIGN_DIR/LEARNED.md"
+    echo "   LEARNED.md сохранён (копия из репозитория — в $LEARNED_BAK)"
+  fi
+  chmod +x "$DESIGN_DIR"/_tools/*.sh "$DESIGN_DIR"/_tools/*.mjs 2>/dev/null || true
+
+  # чужие наборы скиллов — клонируются из апстримов, в этот репозиторий не вендорятся
+  while IFS='|' read -r dir url; do
+    [ -z "$dir" ] && continue
+    if [ -d "$DESIGN_DIR/_vendor/$dir/.git" ]; then
+      git -C "$DESIGN_DIR/_vendor/$dir" pull --quiet --ff-only 2>/dev/null || true
+    else
+      echo "   клонирую $dir..."
+      git clone --depth 1 --quiet "$url" "$DESIGN_DIR/_vendor/$dir" 2>/dev/null \
+        || echo "   ⚠️  не удалось склонировать $url — часть дизайн-скиллов не появится"
+    fi
+  done <<'VENDORS'
+ConardLi-garden-skills|https://github.com/ConardLi/garden-skills.git
+elayadesign-ai-design-skills|https://github.com/elayadesign/ai-design-skills.git
+emilkowalski-skills|https://github.com/emilkowalski/skills.git
+jakubkrehel-skills|https://github.com/jakubkrehel/skills.git
+MengTo-Skills|https://github.com/MengTo/Skills.git
+VENDORS
+
+  # симлинки в ~/.claude/skills
+  LINKED=0; MISSING=0
+  while IFS='|' read -r name target; do
+    [ -z "$name" ] && continue
+    if [ -e "$DESIGN_DIR/$target" ]; then
+      rm -rf "${CLAUDE_DIR:?}/skills/$name"
+      ln -s "$DESIGN_DIR/$target" "$CLAUDE_DIR/skills/$name"
+      LINKED=$((LINKED+1))
+    else
+      MISSING=$((MISSING+1))
+    fi
+  done < "$REPO_DIR/design-skills/SYMLINKS.txt"
+  echo "   подключено скиллов: $LINKED (не найдено: $MISSING)"
+
+  # зависимости скилла openrouter-images (генерация ассетов)
+  if [ -d "$DESIGN_DIR/openrouter-images/scripts" ] && [ ! -d "$DESIGN_DIR/openrouter-images/scripts/node_modules" ]; then
+    (cd "$DESIGN_DIR/openrouter-images/scripts" && npm install --silent 2>/dev/null) \
+      || echo "   ⚠️  npm install для openrouter-images не отработал"
+  fi
+  echo "   ⚠️  Генерация ассетов требует OPENROUTER_API_KEY в окружении (https://openrouter.ai/keys)."
+else
+  echo "   дизайн-стек пропущен (SKIP_DESIGN_STACK=1)"
+fi
 
 # --- MCP: chrome-devtools ---
 if ! claude mcp list 2>/dev/null | grep -q chrome-devtools; then
@@ -103,7 +169,13 @@ fi
 # --- Бинари для плагинов: LSP-серверы, sentry-cli, semgrep ---
 echo "==> Бинари для плагинов (pyright, typescript-language-server, sentry-cli, semgrep)..."
 command -v pyright >/dev/null || npm install -g pyright
-command -v typescript-language-server >/dev/null || npm install -g typescript-language-server typescript
+# typescript@7 — нативный Go-порт без tsserver.js: typescript-language-server его не видит.
+# Поэтому ставим tsls, а TypeScript 5 — вложенной зависимостью внутрь него.
+if ! command -v typescript-language-server >/dev/null; then
+  npm install -g typescript-language-server
+  TSLS_DIR="$(npm root -g)/typescript-language-server"
+  [ -d "$TSLS_DIR" ] && (cd "$TSLS_DIR" && npm install --silent typescript@5 2>/dev/null) || true
+fi
 command -v sentry-cli >/dev/null || npm install -g @sentry/cli
 if ! command -v semgrep >/dev/null; then
   if command -v brew >/dev/null; then
@@ -139,3 +211,6 @@ echo "       semgrep, sentry, sentry-cli, hookify — официальный м�
 echo "       context-mode, claude-mem, impeccable — из своих GitHub-маркетплейсов)."
 echo "   2. Проверь хуки: /hooks, плагины: /plugin, MCP: claude mcp list."
 echo "   3. Обновление GSD: /gsd:update. Справка: /gsd:help."
+echo ""
+echo "ℹ️  Компакт настроен профилем autoCompactWindow=253000 (порог срабатывания — 220k)."
+echo "   Ниже 200000 прекомпьют отключается движком; см. раздел «Компакт» в README."

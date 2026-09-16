@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Записаться на консультацию</title>
+<style>
+  :root{--ink:#1d1b18;--soft:#5a554b;--line:#cfc8ba;--paper:#f6f2e9;--accent:#3f5d45}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+       font:16px/1.6 ui-sans-serif,-apple-system,"Segoe UI",Roboto,sans-serif}
+  main{max-width:420px;margin:0 auto;padding:40px 24px}
+  h1{font-size:1.7rem;line-height:1.25;margin:0 0 12px}
+  p{color:var(--soft);margin:0 0 28px}
+  .actions{display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+  .btn{display:inline-block;font:600 0.95rem/1 inherit;padding:15px 22px;
+       border-radius:6px;border:1px solid transparent;text-decoration:none;cursor:pointer}
+  .btn--solid{background:var(--accent);color:var(--paper)}
+  .btn--outline{background:transparent;color:var(--ink);border-color:var(--line)}
+  /* Дефект: кнопки стоят в столбик на общем левом крае, но ширину берут по длине
+     подписи — правый край расходится на считанные проценты. Для «разного размера»
+     мало, для незаметности много. */
+  .note{margin-top:32px;font-size:0.85rem;color:var(--soft)}
+</style></head>
+<body>
+<main>
+  <h1>Консультация переплётчика</h1>
+  <p>Посмотрим книгу, оценим состояние блока и назовём срок. Занимает около двадцати минут.</p>
+  <div class="actions">
+    <a class="btn btn--solid" href="#zapis">Записаться на приём</a>
+    <a class="btn btn--outline" href="#raboty">Посмотреть работы</a>
+  </div>
+  <p class="note">Приём по записи, будни с десяти до семи.</p>
+</main>
+</body></html>

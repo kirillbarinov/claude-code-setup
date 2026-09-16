@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Мастерская — награды</title>
+<style>
+  body { margin: 0; font: 16px/1.5 Georgia, serif; color: #221f19; background: #f6f3ea; }
+  main { max-width: 900px; margin: 40px auto; padding: 0 24px; }
+  h1 { font-size: 28px; margin: 0 0 24px; }
+  .awards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; align-items: start; }
+  .award { display: flex; flex-direction: column; align-items: flex-start; }
+  .award__mark { border: 3px double #6e5220; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; font-weight: 600; color: #6e5220; }
+  .award--big .award__mark { width: 180px; height: 180px; font-size: 44px; }
+  .award--small .award__mark { width: 110px; height: 110px; font-size: 26px; }
+  /* дефект: подписи прибиты к одной линии от верха блока, а круги разного калибра,
+     поэтому зазор «круг → подпись» у соседей одной роли выходит 20 против 90 */
+  .award__text { margin: 0; position: relative; top: 0; }
+  .award--big .award__text { margin-top: 20px; }
+  .award--small .award__text { margin-top: 90px; }
+  @media (max-width: 720px) { .awards { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Награды мастерской</h1>
+  <div class="awards">
+    <div class="award award--big">
+      <div class="award__mark">12</div>
+      <p class="award__text">Двенадцать лет непрерывной работы с архивными переплётами.</p>
+    </div>
+    <div class="award award--small">
+      <div class="award__mark">5</div>
+      <p class="award__text">Пять бинтов ручной сшивки в каждом блоке.</p>
+    </div>
+    <div class="award award--small">
+      <div class="award__mark">3</div>
+      <p class="award__text">Три реставратора с профильным образованием.</p>
+    </div>
+  </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ранг только на широком экране</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 32px; font: 16px/1.5 system-ui, sans-serif; color: #1c1a17; background: #fbf8f1; max-width: 100%; }
+  h1 { font-size: 1.6rem; margin: 0 0 24px; }
+  a:focus-visible, button:focus-visible { outline: 2px solid #7a5a1e; outline-offset: 2px; }
+  /* Прижаты к низу, чтобы подписи стояли на одной линии: иначе крупная печать поднимает свою
+     подпись выше соседних и на фикстуру ругается чужая проба, про выравнивание. */
+  .row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; align-items: end; }
+  .card { display: grid; grid-template-rows: auto auto; row-gap: 12px; justify-items: start; }
+  /* Язык у всех трёх один и тот же — разнобой тут ни при чём, речь только о размере. */
+  .shape { width: 128px; height: 128px; border-radius: 50%; display: flex; align-items: center;
+           justify-content: center; font-weight: 600; font-size: 1.75rem; color: #6b4c14;
+           border: 3px solid #6b4c14; background: #f0e9d8; }
+  .card--major .shape { width: 180px; height: 180px; font-size: 2.5rem; }
+  .cap { font-size: 0.9rem; color: #4a463d; margin: 0; }
+  /* Дефект: на 1440 старшая печать 180 против 128 — отношение 1.41, ранг виден сразу.
+     В медиазапросе размеры заданы порознь, и старшая упирается в потолок раньше младшей:
+     120 против 112 — отношение 1.07. Модификатор на месте, ранга нет. */
+  @media (max-width: 640px) {
+    .row { grid-template-columns: 1fr; }
+    .shape { width: 112px; height: 112px; }
+    .card--major .shape { width: 120px; height: 120px; }
+  }
+</style>
+<h1>Дефект: старший элемент крупнее только на широком экране</h1>
+<div class="row">
+  <div class="card card--major"><div class="shape">12</div><p class="cap">лет мастерской</p></div>
+  <div class="card"><div class="shape">5</div><p class="cap">лет гарантии</p></div>
+  <div class="card"><div class="shape">30</div><p class="cap">книг в работе</p></div>
+</div>

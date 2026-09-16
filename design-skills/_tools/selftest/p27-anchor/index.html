@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Мастерская — разделы</title>
+<style>
+  :root { --ink:#1e1c18; --ink-soft:#5a544a; --paper:#f6f2e9; --accent:#7a5a1e; --line:#d8cfbc; }
+  * { box-sizing:border-box }
+  body { margin:0; background:var(--paper); color:var(--ink);
+         font:16px/1.6 -apple-system, "Helvetica Neue", Arial, sans-serif; }
+  /* Дефект: шапка залипшая и стоит поверх содержимого, но у корня нет поля прокрутки —
+     переход по якорю ставит цель верхом в ноль, ровно под шапку, и заголовок раздела
+     оказывается ею перерезан. Лечит одна строка: html { scroll-padding-top: 76px }. */
+  .top { position:sticky; top:0; z-index:10; background:var(--paper);
+         border-bottom:1px solid var(--line); padding:18px 24px;
+         display:flex; gap:24px; align-items:baseline }
+  .top__name { font-weight:600 }
+  .top a { color:var(--ink-soft); text-decoration:none; font-size:0.95rem;
+           display:inline-block; min-width:44px; min-height:44px; line-height:44px; padding:0 8px }
+  .top a:hover { color:var(--accent) }
+  .wrap { max-width:720px; margin:0 auto; padding:0 24px 64px }
+  section { padding:48px 0; border-top:1px solid var(--line); min-height:90vh }
+  h2 { font-size:1.6rem; line-height:1.2; margin:0 0 12px }
+  p { color:var(--ink-soft); max-width:56ch; margin:0 0 12px }
+</style></head>
+<body>
+  <header class="top">
+    <span class="top__name">Мастерская Вересень</span>
+    <nav><a href="#services">Услуги</a> <a href="#prices">Цены</a> <a href="#faq">Вопросы</a></nav>
+  </header>
+  <div class="wrap">
+    <section id="services"><h2>Услуги</h2>
+      <p>Переплёт, реставрация корешка, долив листа японской бумагой, изготовление футляра
+        под конкретный блок. Каждая работа начинается с осмотра книги в мастерской.</p>
+      <p>Сроки зависят от состояния блока: слабый корешок держит неделю, осыпающаяся бумага —
+        месяц и больше, потому что каждый лист укрепляется отдельно.</p></section>
+    <section id="prices"><h2>Цены</h2>
+      <p>Осмотр и смета бесплатны. Дальше считаем по объёму работы, а не по числу страниц:
+        книга на двести листов бывает дороже книги на восемьсот.</p></section>
+    <section id="faq"><h2>Вопросы</h2>
+      <p>Берём ли книги без обложки — берём. Восстанавливаем ли утраченное тиснение —
+        только по сохранившемуся оттиску или по фотографии соседнего экземпляра.</p></section>
+  </div>
+</body></html>

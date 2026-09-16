@@ -1,0 +1,13 @@
+<!doctype html><meta charset=utf-8><title>сетка</title>
+<style>body{font:16px/1.6 system-ui;color:#111;background:#fff;margin:0;padding:16px}
+.grid{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:24px}
+.card{border-top:1px solid #111;padding-top:16px}
+.card h3{margin:0 0 8px;font-size:1.1rem}
+.card p{margin:0 0 12px}
+.price{margin-top:16px;padding-top:8px;border-top:1px solid #ccc;color:#444;font-size:.9rem}</style>
+<h1>Дефект: цена висит на своей высоте</h1>
+<div class=grid>
+  <article class=card><h3>Первая</h3><p>Описание длинное, на несколько строк подряд, чтобы карточка вытянулась заметно ниже соседних и цена уехала вниз вслед за абзацем.</p><p class=price>от 4 200 ₽</p></article>
+  <article class=card><h3>Вторая</h3><p>Короткое описание.</p><p class=price>от 2 100 ₽</p></article>
+  <article class=card><h3>Третья</h3><p>Тоже короткое.</p><p class=price>от 1 800 ₽</p></article>
+</div>

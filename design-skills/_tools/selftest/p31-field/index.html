@@ -1,0 +1,20 @@
+<!doctype html><meta charset=utf-8><title>пустое поле без признаков</title>
+<style>
+  body{font:16px/1.6 Georgia,serif;color:#2a251c;background:#e8e1cf;margin:0;padding:40px}
+  h1{font-size:34px;margin:0 0 24px}
+  form{max-width:520px;display:grid;gap:22px}
+  label{display:block;font-size:14px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+  /* Дефект: у поля нет ни заливки, ни контура, ни примера ввода — до первого клика
+     видна одна нижняя черта, и строка читается как подпись с линейкой. */
+  input,textarea{font:inherit;width:100%;box-sizing:border-box;background:transparent;
+    border:none;border-bottom:2px solid #6b5426;padding:12px 10px 8px;color:inherit}
+  textarea{min-height:96px;resize:none}
+  button{font:inherit;padding:12px 24px;background:#6b5426;color:#f6f1e2;border:none}
+</style>
+<h1>Запись на реставрацию</h1>
+<form>
+  <div><label for=n>Имя</label><input id=n name=n type=text></div>
+  <div><label for=t>Телефон</label><input id=t name=t type=tel></div>
+  <div><label for=c>Что нужно сделать</label><textarea id=c name=c></textarea></div>
+  <button type=submit>Отправить</button>
+</form>

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Мастерская — итоги года</title>
+<style>
+  :root { --ink:#1e1c18; --ink-soft:#5a544a; --paper:#f6f2e9; --accent:#7a5a1e; --line:#d8cfbc; }
+  * { box-sizing:border-box }
+  body { margin:0; background:var(--paper); color:var(--ink);
+         font:16px/1.6 -apple-system, "Helvetica Neue", Arial, sans-serif; }
+  .wrap { max-width:720px; margin:0 auto; padding:64px 24px }
+  h1 { font-size:2rem; line-height:1.15; margin:0 0 8px }
+  .lead { color:var(--ink-soft); margin:0 0 40px; max-width:52ch }
+  .stat { display:flex; align-items:baseline; gap:16px; padding:24px 0; border-top:1px solid var(--line) }
+  /* Дефект: число набрано моноширинным ради выравнивания, а разделитель разрядов остался
+     обычным пробелом — в mono у него то же знакоместо, что у цифры, и «1 400» разваливается
+     на «1» и «400». Чем крупнее кегль, тем шире дыра. */
+  .stat__num { font-family: ui-monospace, "SF Mono", Menlo, monospace;
+               font-weight:600; font-size:2.75rem; line-height:1; color:var(--accent);
+               font-variant-numeric: tabular-nums }
+  .stat__label { color:var(--ink-soft); font-size:0.95rem; max-width:24ch }
+</style></head>
+<body>
+  <div class="wrap">
+    <h1>Итоги четырнадцатого года</h1>
+    <p class="lead">Мастерская считает не заказы, а книги: одна и та же обложка возвращается
+      к нам через десять лет, и это тоже строка отчёта.</p>
+    <div class="stat"><span class="stat__num">1 400</span>
+      <span class="stat__label">книг восстановлено с две тысячи одиннадцатого года</span></div>
+    <div class="stat"><span class="stat__num">2 800</span>
+      <span class="stat__label">листов долито вручную японской бумагой</span></div>
+    <div class="stat"><span class="stat__num">9 100</span>
+      <span class="stat__label">метров льняной нити ушло на прошивку блоков</span></div>
+  </div>
+</body></html>
