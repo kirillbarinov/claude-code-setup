@@ -18,7 +18,28 @@ command -v node >/dev/null || {
   exit 1
 }
 
-mkdir -p "$CLAUDE_DIR"/{hooks,skills,agents,commands,scripts}
+mkdir -p "$CLAUDE_DIR"/{hooks,skills,agents,commands,scripts,docs,state}
+
+# --- python 3.10+ для хуков, вики и фоновых задач ---
+# /usr/bin/python3 на macOS бывает заглушкой Xcode (exit 69), поэтому кандидаты
+# перебираются по очереди и каждый проверяется запуском.
+PY=""
+for p in /opt/homebrew/bin/python3 /usr/local/bin/python3 "$(command -v python3 || true)"; do
+  [ -n "$p" ] && [ -x "$p" ] || continue
+  if "$p" -c 'import sys; sys.exit(sys.version_info < (3, 10))' 2>/dev/null; then PY="$p"; break; fi
+done
+if [ -z "$PY" ]; then
+  echo "   ⚠️  python 3.10+ не найден (brew install python) — вики и часть хуков работать не будут."
+  PY=python3
+fi
+echo "   python: $PY"
+
+# Подстановка плейсхолдеров в скопированных файлах: __HOME__, __PYTHON__.
+# Через временный файл и cat — так сохраняются права (исполняемость хуков).
+render_inplace() {
+  local f="$1"
+  sed -e "s|__HOME__|$HOME|g" -e "s|__PYTHON__|$PY|g" "$f" > "$f.tmp.$$" && cat "$f.tmp.$$" > "$f" && rm -f "$f.tmp.$$"
+}
 
 # --- Бэкап существующих конфигов ---
 for f in settings.json CLAUDE.md RTK.md statusline-command.sh; do
@@ -42,7 +63,12 @@ cp "$REPO_DIR"/claude/CLAUDE.md "$CLAUDE_DIR/"
 cp "$REPO_DIR"/claude/RTK.md "$CLAUDE_DIR/"
 cp "$REPO_DIR"/claude/statusline-command.sh "$CLAUDE_DIR/"
 cp -R "$REPO_DIR"/claude/hooks/. "$CLAUDE_DIR/hooks/"
-cp "$REPO_DIR"/claude/research-workflow.md "$CLAUDE_DIR/" 2>/dev/null || true
+cp "$REPO_DIR"/claude/LEARNED.md "$CLAUDE_DIR/"
+cp "$REPO_DIR"/claude/docs/perplexity-guard.md "$CLAUDE_DIR/docs/"
+cp "$REPO_DIR"/claude/model-anthropic.sh "$REPO_DIR"/claude/model-openrouter.sh "$CLAUDE_DIR/"
+# устаревшее из прошлых версий сетапа
+rm -rf "$CLAUDE_DIR/skills/source-finder" "$CLAUDE_DIR/skills/youtube-search"
+rm -f "$CLAUDE_DIR/research-workflow.md"
 for s in "$REPO_DIR"/claude/skills/*/; do
   name="$(basename "$s")"
   rm -rf "${CLAUDE_DIR:?}/skills/$name"
@@ -71,11 +97,82 @@ python3 -m pip install --quiet openpyxl pandas python-docx pypdf pdfplumber pymu
 cp "$REPO_DIR"/claude/agents/*.md "$CLAUDE_DIR/agents/"
 cp "$REPO_DIR"/claude/commands/*.md "$CLAUDE_DIR/commands/"
 cp "$REPO_DIR"/claude/scripts/* "$CLAUDE_DIR/scripts/"
-chmod +x "$CLAUDE_DIR"/hooks/*.sh "$CLAUDE_DIR/statusline-command.sh" "$CLAUDE_DIR"/scripts/*.sh
+chmod +x "$CLAUDE_DIR"/hooks/*.sh "$CLAUDE_DIR/statusline-command.sh" "$CLAUDE_DIR"/scripts/*.sh "$CLAUDE_DIR"/model-*.sh
 
-# settings.json: подставляем реальный $HOME вместо плейсхолдера
-sed "s|__HOME__|$HOME|g" "$REPO_DIR/claude/settings.json" > "$CLAUDE_DIR/settings.json"
+# движок вики (python stdlib, тесты — в wiki-engine/tests)
+rm -rf "$CLAUDE_DIR/wiki-engine"
+cp -R "$REPO_DIR"/claude/wiki-engine "$CLAUDE_DIR/wiki-engine"
+
+# плейсхолдеры в правилах, хуках, скиллах
+for f in "$CLAUDE_DIR"/CLAUDE.md "$CLAUDE_DIR"/model-*.sh "$CLAUDE_DIR"/hooks/*.sh \
+         "$CLAUDE_DIR"/skills/os-audit/SKILL.md "$CLAUDE_DIR"/skills/wiki/SKILL.md; do
+  [ -f "$f" ] && grep -qE '__HOME__|__PYTHON__' "$f" && render_inplace "$f"
+done
+
+# settings.json: подставляем реальный $HOME и python вместо плейсхолдеров
+sed -e "s|__HOME__|$HOME|g" -e "s|__PYTHON__|$PY|g" "$REPO_DIR/claude/settings.json" > "$CLAUDE_DIR/settings.json"
 echo "   settings.json установлен (старый — в бэкапе)"
+
+# Ключи живут вне репозитория. Шаблон без значений — только если файла ещё нет.
+if [ ! -f "$CLAUDE_DIR/secrets.env" ]; then
+  printf '# Ключи для хуков. Файл не коммитить.\nOPENROUTER_API_KEY=\n' > "$CLAUDE_DIR/secrets.env"
+  chmod 600 "$CLAUDE_DIR/secrets.env"
+fi
+
+# --- Вики проектов: хранилище (git) и состояние ---
+mkdir -p "$CLAUDE_DIR/state/wiki" "$CLAUDE_DIR/audits"
+if [ ! -d "$CLAUDE_DIR/wiki/.git" ]; then
+  echo "==> Создаю вики проектов в ~/.claude/wiki..."
+  mkdir -p "$CLAUDE_DIR/wiki"
+  git -C "$CLAUDE_DIR/wiki" init -q
+  git -C "$CLAUDE_DIR/wiki" config user.name wiki
+  git -C "$CLAUDE_DIR/wiki" config user.email wiki@local
+  if [ ! -f "$CLAUDE_DIR/wiki/_exclude.txt" ]; then
+    cat > "$CLAUDE_DIR/wiki/_exclude.txt" <<'EXCL'
+# Проекты, которые не вести в вики — по имени папки в ~, по строке
+Applications
+Library
+Movies
+Music
+Pictures
+Public
+OneDrive
+Creative Cloud Files
+Yandex.Disk.localized
+bin
+opt
+__pycache__
+EXCL
+  fi
+  git -C "$CLAUDE_DIR/wiki" add _exclude.txt && git -C "$CLAUDE_DIR/wiki" commit -qm "wiki: init"
+fi
+
+# --- Фоновые задачи launchd (только macOS) ---
+# Шаблоны в claude/launchd: __HOME__, __PYTHON__, __PATH__ подставляются здесь.
+if [ "$(uname)" = "Darwin" ]; then
+  echo "==> Фоновые задачи launchd (вики, бэкапы, аудит, версии, канал памяти)..."
+  LA="$HOME/Library/LaunchAgents"; mkdir -p "$LA"
+  CLAUDE_BIN_DIR="$(dirname "$(command -v claude)")"
+  SVC_PATH="$HOME/.local/bin:$CLAUDE_BIN_DIR:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+  for tpl in "$REPO_DIR"/claude/launchd/*.plist; do
+    name="$(basename "$tpl" .plist)"
+    dst="$LA/$name.plist"
+    launchctl bootout "gui/$(id -u)/$name" 2>/dev/null || true
+    sed -e "s|__HOME__|$HOME|g" -e "s|__PYTHON__|$PY|g" -e "s|__PATH__|$SVC_PATH|g" "$tpl" > "$dst"
+    if launchctl bootstrap "gui/$(id -u)" "$dst" 2>/dev/null; then
+      echo "   $name — загружена"
+    else
+      echo "   ⚠️  $name — не загрузилась: launchctl bootstrap gui/$(id -u) $dst"
+    fi
+  done
+  echo "   Бэкапы: память — в Google Drive (если смонтирован), вики — в Яндекс Диск (если есть),"
+  echo "   иначе в ~/.claude/backups/. Другая папка — CLAUDE_MEM_BACKUP_DIR / CLAUDE_WIKI_BACKUP_DIR"
+  echo "   в EnvironmentVariables соответствующего plist в ~/Library/LaunchAgents."
+else
+  echo "   ℹ️  Фоновые задачи (обновление вики, бэкапы, аудит) — только macOS (launchd)."
+  echo "      Вики на старте сессии работает, но сама не обновляется: запускай вручную"
+  echo "      $PY ~/.claude/wiki-engine/wiki_update.py или повесь его на cron раз в 2 часа."
+fi
 
 # --- Дизайн-стек: агенты design-director/design-critic + ~135 скиллов ---
 # Свои скиллы живут в ~/.local/share/design-skills, чужие подтягиваются из апстримов,
@@ -199,8 +296,9 @@ if ! command -v ezycopy >/dev/null; then
   echo "   ⚠️  ezycopy не установлен — нужен для Web Fetching Rules."
   echo "      Установка: https://github.com/gupsammy/EzyCopy (go install github.com/gupsammy/EzyCopy@latest)"
 fi
-if ! command -v yt-dlp >/dev/null; then
-  echo "   ⚠️  yt-dlp не установлен — нужен для скилла youtube-search (brew install yt-dlp)."
+if ! command -v anydoc >/dev/null; then
+  echo "   Устанавливаю anydoc (чтение .docx/.pptx/.xlsx/.pdf в Markdown)..."
+  npm install -g @firecrawl/anydoc >/dev/null 2>&1 || echo "   ⚠️  anydoc не установлен — работает и через npx -y @firecrawl/anydoc"
 fi
 
 echo ""
@@ -211,6 +309,10 @@ echo "       semgrep, sentry, sentry-cli, hookify — официальный м�
 echo "       context-mode, claude-mem, impeccable — из своих GitHub-маркетплейсов)."
 echo "   2. Проверь хуки: /hooks, плагины: /plugin, MCP: claude mcp list."
 echo "   3. Обновление GSD: /gsd:update. Справка: /gsd:help."
+echo "   4. Память claude-mem: запасной канал через OpenRouter — ключ в ~/.claude-mem/settings.json"
+echo "      (CLAUDE_MEM_OPENROUTER_API_KEY) и в ~/.claude/secrets.env (OPENROUTER_API_KEY, им"
+echo "      claude-mem-model.sh проверяет цепочку). Без ключа сторож канала просто держит подписку."
+echo "   5. Вики проектов заполняется сама (раз в 2 ч, macOS). Вручную: скилл wiki, «обнови вики»."
 echo ""
 echo "ℹ️  Компакт настроен профилем autoCompactWindow=253000 (порог срабатывания — 220k)."
 echo "   Ниже 200000 прекомпьют отключается движком; см. раздел «Компакт» в README."

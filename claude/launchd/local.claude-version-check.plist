@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>local.claude-version-check</string>
+  <key>ProgramArguments</key><array>
+    <string>/bin/bash</string><string>__HOME__/.claude/hooks/check-tool-versions.sh</string>
+  </array>
+  <key>StartCalendarInterval</key><dict>
+    <key>Minute</key><integer>17</integer>
+    <key>Hour</key><integer>10</integer>
+    <key>Day</key><integer>1</integer>
+  </dict>
+  <key>RunAtLoad</key><false/>
+  <key>StandardErrorPath</key><string>__HOME__/.claude/state/local.claude-version-check.err</string>
+</dict></plist>

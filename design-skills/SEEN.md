@@ -12,3 +12,5 @@
 - 2026-09-07 · izmorozilki-01 · fonts: Onest + Ruda · theme: light · bg: #e3e9ec · ink: #546672 · accent: #c2005f · radius: 2 · scale: 17.71 · hero: left · row: 4
 - 2026-09-07 · izmorozilki-02 · fonts: Rubik + Geologica · theme: light · bg: #f1f3f6 · ink: #101724 · accent: #c9f227 · radius: 12 · scale: 8.8 · hero: left · row: 3
 - 2026-09-07 · izmorozilki-02 · fonts: Rubik + Geologica · theme: light · bg: #f1f3f6 · ink: #101724 · accent: #c9f227 · radius: 12 · scale: 6.67 · hero: left · row: 3
+- 2026-09-25 · Помощник — чат · fonts: Source Serif 4 + Onest Variable · theme: light · bg: #f9faf6 · ink: #1d2a1e · accent: #0e3a1c · radius: 8 · scale: 1.83 · hero: left · row: 3
+- 2026-09-25 · Помощник-чат: удаление в строке, шторка с порталом · fonts: Onest Variable + Source Serif 4 · theme: light · bg: #f9faf6 · ink: #1d2a1e · accent: #0e3a1c · radius: 8 · scale: 1.36 · hero: left · row: 0

@@ -12,7 +12,7 @@ Do not make any changes until you have 95% confidence in what you need to build.
 
 **Точка входа — скилл `research`.** Он держит всю процедуру: классификацию (ФАКТ / ПРАКТИКА / ВЫБОР / СОСТОЯНИЕ — по типу решающих доказательств, не по форме фразы), выбор режима (quick инлайн / standard и wide в субагенте `researcher`), стадии воронки и форму отчёта. Класс и режим анонсировать одной строкой до поиска («класс ВЫБОР → wide, ~20 мин»). Ломатель обязателен для wide и для standard, когда факт идёт в код, деньги или необратимое решение; поправка ломателя побеждает. Главный контекст не забивается: наружу выходит только сводка.
 
-**Мимо поиска:** библиотеки/API/конфиги → Context7; известен URL → `ezycopy <URL>`; длинный документ → `ctx_fetch_and_index` + `ctx_search`; «откуда взялся факт» / видео → скиллы `source-finder` / `youtube-search`; факт из claude-mem — кандидат с датой источника, не ответ.
+**Мимо поиска:** библиотеки/API/конфиги → Context7; известен URL → `ezycopy <URL>`; длинный документ → `ctx_fetch_and_index` + `ctx_search`; факт из claude-mem — кандидат с датой источника, не ответ.
 
 **Форма ответа:** Вывод / Обоснование / Кто не согласен / Не установлено / Покрытие. Каждое утверждение — с числом независимых источников, URL и датой источника, не сегодняшней. Не нашёл → «не найдено такими-то каналами», не правдоподобная заготовка. Cutoff — май 2026: всё после искать обязательно, полгода до — проверять.
 
@@ -20,7 +20,7 @@ Do not make any changes until you have 95% confidence in what you need to build.
 
 **Фолбэк при мёртвом Perplexity:** `touch ~/.claude/perplexity-guard.disabled` — 10-минутное окно встроенного поиска; удалить флаг, когда ожил. Воронка не меняется — меняется канал обнаружения.
 
-> Принуждение: hook `perplexity-guard.sh` (`PreToolUse` на `WebSearch|WebFetch` и `Bash`) блокирует встроенный веб-поиск и публичный `curl`/`wget` для главного агента, редиректит в Perplexity. Субагенты пропускаются по top-level полям `agent_id`/`agent_type` (именованный агент шлёт только `agent_type`; парсинг `jq`, не grep). Решения пишутся в `~/.claude/perplexity-guard.log`. Другие MCP (context-mode, Exa, Firecrawl) не покрываются.
+> Принуждение: hook `perplexity-guard.sh` блокирует встроенный веб-поиск и публичный `curl`/`wget` для главного агента; субагенты пропускаются. Устройство, кого пропускает, журнал, фолбэк — `~/.claude/docs/perplexity-guard.md` (читать при отладке guard, не заранее).
 
 # Context7 — When to Use
 
@@ -83,67 +83,111 @@ Use the Skill tool autonomously — invoke any skill whenever you judge it appro
 Use subagents for any exploration or research. If a task needs 3+ files or multi-file analysis, spawn a subagent and return only summarized insights.
 
 ## Web Fetching Rules
-When you need to read the contents of a webpage or documentation via URL, you are STRICTLY FORBIDDEN to use built-in web_fetch tools or browser MCPs. 
-Instead, always run the following command in the terminal: `ezycopy <URL>`. 
-Read the terminal output — it will be clean Markdown stripped of junk. Use it for your analysis.
 
-# Applied Learning
+**Запрет касается чтения содержимого страницы по URL, не управления браузером.**
 
-When something fails repeatedly, when the user has to re-explain, or when a workaround is found for a platform/tool limitation, add a one-line bullet here. Keep each bullet under 15 words. No explanations. Only add things that will save time in future sessions.
+Нужно прочитать страницу или документацию по URL — built-in `web_fetch` и браузерные MCP
+ЗАПРЕЩЕНЫ. Только `ezycopy <URL>` в терминале: на выходе чистый Markdown без мусора.
 
-- Грабли дизайн-цикла (пробы, снимки, OpenRouter/fal, вёрстка) — в `~/.local/share/design-skills/LEARNED.md`, не сюда.
-- sudo -S + heredoc на ssh: пароль съедает первую строку. Пиши в /tmp без sudo, потом sudo cp.
-- Агент с `name:` + whitelist `tools:` без SendMessage = пустой idle. Адресат отчёта — `team-lead`, не `main`.
-- `yandex.cloud` отдаёт капчу. Обход: `aistudio.yandex.ru` или репо `yandex-cloud/docs`.
-- ezycopy теряет таблицы в Mintlify-табах. Обход: `ctx_fetch_and_index` + `ctx_search`.
-- Попутный факт («только», «везде») цитируется тем же тиром. Перепроверяй по странице.
-- garant.ru через ctx_fetch_and_index даёт битую кириллицу. Обход: kremlin.ru/acts, consultant.ru.
-- publication.pravo.gov.ru отдаёт текст закона сканом. Карточка читаема, текст — нет.
-- ezycopy на JS-странице возвращает 300 байт cookie-баннера как «успех». Проверяй объём.
-- JS-страница пуста в ezycopy — пробуй тот же URL с суффиксом `.md` (`/faq.md`).
-- Кодифицированный текст НК с «в ред. ФЗ от…» — consultant.ru. Гарант отстаёт.
-- Справка ГПУ обрывает норму: «за 2030 год» без «и последующие годы». Цитируй до точки.
-- ID документа на publication.pravo.gov.ru не угадывать — ведёт к чужому акту.
-- Прячется за JS-селектором — ищи в `<домен>/llms.txt`, только `-o` + grep.
-- «Issue открыт» — проверяй `state` и текущий код в main, не заголовок.
-- «Не существует» недоказуемо. Пиши «не найдено такими-то каналами».
-- Отчёт researcher'а — прогнать `validate-research-report.py`: форма, бесплатно.
-- Число из API утверждай порядком, если пересчёт даёт другое.
-- Именованный агент (`name:`) шлёт в hook-input `agent_type` без `agent_id`. Guard проверяет оба.
-- Интегральный % метрики скрывает профиль. Решает таблица по диапазонам под критерий вопроса.
-- Противоречие источников сначала grep'ай по своим же сохранённым файлам — часто потерян квалификатор.
-- Число с вшитой ссылкой — сначала открой источник цифры (методика, дата, оговорки).
-- Ось сравнения цитируй вместе с числом: что vs что, какие версии.
-- Exa не достаёт Reddit (403). Только двухходовка Perplexity → old.reddit.
-- Цитата о возможностях инструмента — сверяй с последним релизом, не с датой поста.
-- «Не поддерживается» из поста — проверь текущий state трекера: блокер мог закрыться.
-- «Источник не найден» — сначала сверь дату/URL искомой статьи: возможно, искал другую.
-- `/usr/bin/python3` — заглушка Xcode (exit 69). Рабочий: `/opt/homebrew/bin/python3`.
-- chrome-devtools пишет скриншот только внутрь cwd-проекта. Сохраняй туда, потом mv.
-- ezycopy падает x509 на госсайтах РФ (Минцифры CA). Ищи канал перебором t.me/s/.
-- Осиротевшие tmux `claude-swarm-<pid>` съедают pty → «fork failed: Device not configured». Жнец в SessionStart/End.
+Браузерные MCP (`chrome-devtools`, `claude-in-chrome`) остаются штатным инструментом там, где
+предмет — **работающее приложение, а не текст страницы**: smoke через `web-test`, проверка
+вёрстки скриншотами в `design-director`, отладка консоли и сети. Это не обход правила выше —
+разные задачи.
+
+# Вики проектов
+
+Знания по каждому проекту — `~/.claude/wiki/<проект>/`. Router проекта уже в контексте (хук на
+старте). Порядок: router → нужные `pages/` (не больше 5) → grep/glob. Файл из `sources` страницы
+новее её `updated` — верить файлу. Вопрос про несколько проектов — начать с
+`~/.claude/wiki/_index.md`. Вики руками не править — скилл `wiki`.
+
+# Карта расположения
+
+Где что физически лежит. Это роутер: не помнить содержимое, а знать адрес.
+Ссылки отсюда проверяет скилл `os-audit` — карта не протухает молча.
+
+| Что | Где |
+|---|---|
+| Глобальные правила (этот файл) | `~/.claude/CLAUDE.md` |
+| RTK — токен-прокси | `~/.claude/RTK.md` |
+| Превентивные грабли | здесь, блок Applied Learning ниже |
+| Диагностические грабли | `~/.claude/LEARNED.md` |
+| Грабли дизайн-цикла | `~/.local/share/design-skills/LEARNED.md` |
+| Механика perplexity-guard | `~/.claude/docs/perplexity-guard.md` |
+| Свои скиллы | `~/.claude/skills/<name>/SKILL.md` |
+| Свои агенты | `~/.claude/agents/<name>.md` |
+| Хуки | `~/.claude/hooks/` |
+| Настройки и регистрация хуков | `~/.claude/settings.json` |
+| Боевая сборка perplexity-MCP | `~/.claude/mcp` |
+| Журнал решений guard | `~/.claude/perplexity-guard.log` |
+| Отчёты аудита сетапа | `~/.claude/audits/` |
+| Бэкапы памяти claude-mem | Google Drive → `claude-mem-backup/` (7 последних); другая папка — `CLAUDE_MEM_BACKUP_DIR` |
+| Окружение claude-mem (таймаут LLM) | блок `env` в `~/.claude/settings.json` — settings.json самого claude-mem его не читает |
+| Канал наблюдателя claude-mem | `~/.claude/hooks/claude-mem-provider.sh` — подписка основным, OpenRouter запасным, переключает сам |
+| Состав цепочки моделей OpenRouter | `~/.claude/hooks/claude-mem-model.sh` — показать, `backup` / `main` — переключить |
+| Состояние фоновых задач | `~/.claude/state/` |
+| Задачи по расписанию | `~/Library/LaunchAgents/local.claude-*.plist` |
+| Рабочий python | `__PYTHON__` |
+| Вики проектов | `~/.claude/wiki/` (git), индекс `_index.md`, исключения `_exclude.txt` |
+| Движок вики | `~/.claude/wiki-engine/`; очередь, состояние, лог — `~/.claude/state/wiki/` |
+| Бэкапы вики | Яндекс Диск → `claude-wiki-backup/` (7 последних); другая папка — `CLAUDE_WIKI_BACKUP_DIR` |
+| Карта папок кода (project-map) | `~/.claude/hooks/project-map-build.mjs` → блоки КАРТА в `CLAUDE.md` папок |
+
+**Что делается само, по расписанию** (launchd, `launchctl list | grep local.claude`):
+
+| Задача | Когда | Что делает |
+|---|---|---|
+| `claude-os-audit` | вс 10:07 | прогоняет скилл `os-audit`, отчёт в `~/.claude/audits/` |
+| `claude-mem-backup` | ежедневно 12:41 | sqlite-копия памяти в Google Drive, gzip, ротация 7 |
+| `claude-version-check` | 1-го 10:17 | сверяет версии с `state/versions.expected.json`, пишет `state/version-drift.md` только при расхождении |
+| `claude-mem-provider` | каждые 10 мин | держит память на подписке, уводит на OpenRouter при отказе и возвращает обратно |
+| `claude-wiki` | каждые 2 ч | обновляет вики проектов из очереди, собирает новые (≤3 за прогон) |
+| `claude-wiki-backup` | ежедневно 12:51 | архив вики на Яндекс Диск, ротация 7 |
+
+Результаты приходят не в лог, а в начало следующей сессии: хук `os-audit-staleness.sh` печатает
+строку, если аудит устарел или версии разошлись. Молчит — всё ровно.
+
+
+# BACKTRACK — разбор промаха до починки
+
+Когда агент промахнулся по собственному сетапу, исправлять нужно не ответ, а маршрут.
+
+**Триггеры:**
+- Не нашёл то, что в сетапе есть.
+- Сказал «нет доступа» / «не могу», хотя доступ есть.
+- Искал долго там, где ответ лежал в одном известном файле.
+- Пошёл не тем каналом (встроенный поиск вместо Воронки, скилл `docx` вместо `anydoc`).
+
+**Что делать — именно в этом порядке:**
+1. **Не** говорить «впредь так не делай». Это не чинит ничего.
+2. Заставить агента пройти по собственному следу: что он вызвал, где искал, почему не нашёл.
+3. Получить от него **причину**, названную явно, и место, где следовало искать.
+4. Только после этого — чинить: правило, маршрут в карте выше, описание скилла.
+5. Если причина не разовая — строка в Applied Learning (превентивная) или в `LEARNED.md`
+   (диагностическая).
+
+Признание ошибки без названной причины — не backtrack. Причина — это то, что чинится.
+
+# Applied Learning — превентивное
+
+Здесь только то, что нужно знать **до** шага: деструктивное и тихо ломающееся. Симптома не
+будет — будет ущерб. Диагностическое (симптом виден, причина ищется потом) → `~/.claude/LEARNED.md`.
+
+Новая заметка: одна строка, до 15 слов, без объяснений. Сюда — если цена ошибки необратима
+или сбой тихий. Иначе — в `LEARNED.md`.
+
+- `brew uninstall` тянет autoremove. Снёс gemini-cli — утащил сам node. Сначала `brew uses --installed`.
+- git commit в общем репо сметает индекс субагента; коммить через 'git commit -- <пути>'.
 - Cursor snapshots с root=home: 241GB за час, refs=0 → мусор, сносить.
-- perplexity-guard режет heredoc с URL внутри текста. Пиши такой файл нативным Write.
-- Файл на 2500 строк в контекст субагента = autocompact thrashing. Давай фрагментами.
-- Забрал отчёт агента — сразу TaskStop. Сам он не умирает, копится в панели.
-- Агент с `name:` живёт как teammate: TaskOutput его не видит, отчёт молчит. Спавни без имени.
-- Ollama режет контекст до 4096. Лечит OLLAMA_CONTEXT_LENGTH + LaunchAgent (launchctl setenv не переживает ребут).
-- Ollama: KV = 32 KiB/токен; превышение n_ctx не ошибка, а тихая обрезка context-shift.
-- `ollama serve` руками из shell не видит `launchctl setenv` → молча 4096. Владелец сервера — Ollama.app.
-- opencode: `options.num_ctx` не пробрасывается через `/v1`. Контекст задаёт только сервер Ollama.
-- Порог автокомпакта = autoCompactWindow − 33000 (резерв 20k + Ten 13k). ×0.8 — это прекомпьют, не сжатие.
-- autoCompactWindow < 200000 отключает прекомпьют: гейт H4n `window < uB(200000)` при явном source.
-- Минимум порога с живым прекомпьютом = 200000 − 33000 = 167k (16.7% от 1M). Ниже — только патч бинарника.
-- CLAUDE_AUTOCOMPACT_PCT_OVERRIDE не спасает: Lbt = min(0.8·Nj, порог) схлопывает взвод на порог.
-- Координаты посёлка по памяти врут на десятки км. Сверяй до вывода.
 - bash не понимает кириллицу в именах переменных; `bash -n` это не ловит.
-- Starlette не узнаёт кириллицу в `{имя:path}` — маршрут молча становится литералом.
-- Testcontainers в gradle-контейнере: -v /var/run/docker.sock + TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal.
+- `/usr/bin/python3` — заглушка Xcode (exit 69). Рабочий: `__PYTHON__`.
 - ЧИТАТЬ .docx/.pptx/.xlsx/.pdf — только `anydoc`, не скиллы docx/pdf/xlsx: pandoc и pypdf не установлены.
 - СОЗДАВАТЬ/править .docx и .xlsx — штатные скиллы: python-docx и openpyxl на месте.
-- PreCompact-лимитер дублирует нативную защиту от thrashing и глушит компакт. Не нужен.
-- typescript@7 — нативный Go-порт без tsserver.js. LSP чинит вложенный typescript@5 в tsls.
-- npm 12 требует Node ^22 || ^24 || >=26 — ветку 25 не поддерживает. Сейчас Node 26 + npm 12.
+- Забрал отчёт агента — сразу TaskStop. Сам он не умирает, копится в панели.
+- Осиротевшие tmux `claude-swarm-<pid>` съедают pty → «fork failed: Device not configured». Жнец в SessionStart/End.
 - Боевой perplexity-MCP — локальная сборка ~/.claude/mcp, не глобальный npm. Обновлять обе.
-- rtk 0.49 починил грабли grep/cat/npx из 0.29. `rtk proxy` как обход больше не нужен.
-- `brew uninstall` тянет autoremove. Снёс gemini-cli — утащил сам node. Сначала `brew uses --installed`.
+- PreCompact-лимитер дублирует нативную защиту от thrashing и глушит компакт. Не включать.
+- Субагент переписывает тестовый файл целиком; удалённый тест не краснеет. Сверять `grep -c '@Test'`.
+- Open WebUI на старте стирает `static/`; отделку класть в `frontend/static`.
+- `claude -p` молча не пишет в любые `.claude/`; рабочую папку модели держать вне.
+- Грабли дизайн-цикла (пробы, снимки, OpenRouter/fal, вёрстка) — в `~/.local/share/design-skills/LEARNED.md`, не сюда.

@@ -22,7 +22,7 @@ if (-not (Get-Command bash -ErrorAction SilentlyContinue)) {
   Write-Host "⚠️  bash не найден — хуки (.sh) не смогут работать. Установи Git for Windows: winget install Git.Git" -ForegroundColor Yellow
 }
 
-foreach ($d in @("hooks", "skills", "agents", "commands")) {
+foreach ($d in @("hooks", "skills", "agents", "commands", "docs")) {
   New-Item -ItemType Directory -Force -Path (Join-Path $ClaudeDir $d) | Out-Null
 }
 
@@ -49,7 +49,12 @@ Copy-Item (Join-Path $RepoDir "claude\CLAUDE.md")              $ClaudeDir -Force
 Copy-Item (Join-Path $RepoDir "claude\RTK.md")                 $ClaudeDir -Force
 Copy-Item (Join-Path $RepoDir "claude\statusline-command.sh")  $ClaudeDir -Force
 Copy-Item (Join-Path $RepoDir "claude\hooks\*")   (Join-Path $ClaudeDir "hooks")   -Recurse -Force
-Copy-Item (Join-Path $RepoDir "claude\research-workflow.md") $ClaudeDir -Force -ErrorAction SilentlyContinue
+Copy-Item (Join-Path $RepoDir "claude\LEARNED.md")             $ClaudeDir -Force
+Copy-Item (Join-Path $RepoDir "claude\docs\perplexity-guard.md") (Join-Path $ClaudeDir "docs") -Force
+# устаревшее из прошлых версий сетапа
+foreach ($old in @("skills\source-finder", "skills\youtube-search", "research-workflow.md")) {
+  Remove-Item (Join-Path $ClaudeDir $old) -Recurse -Force -ErrorAction SilentlyContinue
+}
 foreach ($s in Get-ChildItem (Join-Path $RepoDir "claude\skills") -Directory) {
   $dst = Join-Path $ClaudeDir "skills\$($s.Name)"
   if (Test-Path $dst) { Remove-Item $dst -Recurse -Force }
@@ -83,10 +88,29 @@ Copy-Item (Join-Path $RepoDir "claude\agents\*.md")   (Join-Path $ClaudeDir "age
 Copy-Item (Join-Path $RepoDir "claude\commands\*.md") (Join-Path $ClaudeDir "commands") -Force
 # claude/scripts (team-*) — только для macOS (osascript/tmux), на Windows не копируются.
 
+# Вики проектов и фоновые задачи (обновление вики, бэкапы памяти и вики, еженедельный аудит,
+# сверка версий, сторож канала claude-mem) держатся на launchd — это только macOS.
+# На Windows движок вики не ставится, его хуки из settings.json убираются.
+Write-Host "   ℹ️  Вики проектов и фоновые задачи — только macOS (launchd), на Windows пропущены." -ForegroundColor Yellow
+Write-Host "      Всё остальное (правила, скиллы, агенты, поиск, дизайн-стек) работает как обычно."
+
+# Плейсхолдеры __PYTHON__ в правилах и хуках: на Windows — просто python.
+# Пишем UTF-8 без BOM: BOM перед #!/bin/bash ломает первую строку bash-скрипта.
+$utf8 = New-Object System.Text.UTF8Encoding($false)
+$toRender = @(Join-Path $ClaudeDir "CLAUDE.md") + (Get-ChildItem (Join-Path $ClaudeDir "hooks") -Filter *.sh | ForEach-Object FullName)
+foreach ($f in $toRender) {
+  $txt = [IO.File]::ReadAllText($f)
+  if ($txt -match '__PYTHON__') { [IO.File]::WriteAllText($f, ($txt -replace '__PYTHON__', 'python'), $utf8) }
+}
+
 # settings.json: подставляем домашнюю директорию (forward slashes — так пути понимает и Git Bash)
+# и убираем хуки вики (движка на Windows нет).
 $homeFwd = $env:USERPROFILE -replace '\\', '/'
-(Get-Content (Join-Path $RepoDir "claude\settings.json") -Raw) -replace '__HOME__', $homeFwd |
-  Set-Content (Join-Path $ClaudeDir "settings.json") -Encoding UTF8
+$cfg = ((Get-Content (Join-Path $RepoDir "claude\settings.json") -Raw -Encoding UTF8) -replace '__HOME__', $homeFwd -replace '__PYTHON__', 'python') | ConvertFrom-Json
+foreach ($ev in @("SessionStart", "SessionEnd")) {
+  $cfg.hooks.$ev = @($cfg.hooks.$ev | Where-Object { -not ($_.hooks.command -match 'wiki_hook\.py') })
+}
+[IO.File]::WriteAllText((Join-Path $ClaudeDir "settings.json"), ($cfg | ConvertTo-Json -Depth 32), $utf8)
 Write-Host "   settings.json установлен (старый — в бэкапе)"
 
 # --- Дизайн-стек: агенты design-director/design-critic + ~135 скиллов ---
@@ -198,8 +222,9 @@ if (-not (Get-Command ezycopy -ErrorAction SilentlyContinue)) {
   Write-Host "   ⚠️  ezycopy не установлен — нужен для Web Fetching Rules."
   Write-Host "      Установка (нужен Go): go install github.com/gupsammy/EzyCopy@latest"
 }
-if (-not (Get-Command yt-dlp -ErrorAction SilentlyContinue)) {
-  Write-Host "   ⚠️  yt-dlp не установлен — нужен для скилла youtube-search: winget install yt-dlp.yt-dlp"
+if (-not (Get-Command anydoc -ErrorAction SilentlyContinue)) {
+  Write-Host "   Устанавливаю anydoc (чтение .docx/.pptx/.xlsx/.pdf в Markdown)..."
+  npm install -g "@firecrawl/anydoc" 2>$null
 }
 
 Write-Host ""
