@@ -1,0 +1,14 @@
+# Автозамены после распознавания: «как услышал => как надо». Без учёта регистра, целыми словами.
+# Добавляй сюда устойчивые ошибки. Подхватывается без перезапуска.
+SQL Alchemy => SQLAlchemy
+SQL-Alchemy => SQLAlchemy
+QN => Qwen
+Квен => Qwen
+Квин => Qwen
+Клод код => Claude Code
+Cloud Code => Claude Code
+Гитхаб => GitHub
+Git Hub => GitHub
+пайтест => pytest
+Фаст API => FastAPI
+Next JS => Next.js

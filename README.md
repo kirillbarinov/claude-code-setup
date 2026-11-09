@@ -89,7 +89,7 @@ powershell -ExecutionPolicy Bypass -File install.ps1
 5. Разворачивают дизайн-стек: свои скиллы в `~/.local/share/design-skills`, чужие — клонами из апстримов, симлинки в `~/.claude/skills` по манифесту `design-skills/SYMLINKS.txt`.
 6. Регистрируют MCP `chrome-devtools`, `context7` и `perplexity-mcp` (спросит твой `PERPLEXITY_API_KEY` — взять на https://www.perplexity.ai/settings/api; ключ никуда, кроме твоей локальной конфигурации, не попадает).
 7. Ставят бинари для плагинов: `pyright`, `typescript-language-server` (+ вложенный TypeScript 5), `@sentry/cli` (npm), `semgrep` (brew/pip).
-8. Ставят `rtk` и `sox` (голос в терминале) через brew (только macOS/Linux) и `anydoc` через npm; подсказывают, как поставить `ezycopy`.
+8. Ставят `rtk` и `sox` через brew (только macOS/Linux) и `anydoc` через npm; подсказывают, как поставить `ezycopy`.
 9. Удаляют устаревшее из прошлых версий сетапа (`source-finder`, `youtube-search`, `research-workflow.md`).
 
 Только `install.sh`:
@@ -97,17 +97,23 @@ powershell -ExecutionPolicy Bypass -File install.ps1
 10. Ставят движок вики в `~/.claude/wiki-engine`, создают `~/.claude/wiki` (git) со списком исключений и `~/.claude/state`.
 11. На macOS раскладывают шесть launchd-задач из шаблонов `claude/launchd/` (подставляются `$HOME`, найденный python и `PATH` с `claude`) и загружают их. Повторный запуск перезагружает задачи.
 12. Создают `~/.claude/secrets.env` с пустыми `OPENROUTER_API_KEY` и `PERPLEXITY_API_KEY`, если файла нет, и добавляют в `~/.zshrc` строку, которая его подключает. Ключи в репозиторий не попадают; фоновые задачи launchd `.zshrc` не читают и берут ключи через `hooks/lib-unattended-auth.sh`.
+13. На Mac с Apple Silicon ставят голосовую диктовку в `~/voice-dictate` (правый Option), качают модели Whisper и загружают задачу `local.voice-dictate`.
 
 После этого запусти `claude` — он сам предложит установить плагины, перечисленные в `settings.json` (superpowers, skill-creator, frontend-design, pyright-lsp, typescript-lsp, semgrep, sentry, sentry-cli, hookify — из официального маркетплейса; context-mode, claude-mem и impeccable — из своих GitHub-маркетплейсов).
 
-## Голосовой ввод
+## Голосовой ввод — правый Option
 
-Включён в профиле: `"voiceEnabled": true` в `settings.json`.
+Своя программа `voice-dictate` (ставится в `~/voice-dictate`, работает фоном через launchd):
 
-- **Панель Claude Code в Cursor / VS Code** — зажми **Option (⌥)**, говори, отпусти: текст встанет в поле ввода.
-- **Claude Code в терминале** — то же самое пробелом (зажать и держать). Нужен SoX для записи звука — инсталлятор ставит его через brew. Другая клавиша — привязка `voice:pushToTalk` в `~/.claude/keybindings.json`.
-- Нужен вход через аккаунт claude.ai (`/login`) — с ключом API голос не работает.
-- macOS спросит доступ к микрофону. Если отказал — Системные настройки → Конфиденциальность и безопасность → Микрофон → включить Cursor / VS Code / Терминал и перезапустить приложение.
+- **Нажми и отпусти правый Option** — звук «тинь» и плашка записи; говори.
+- **Ещё раз правый Option** — запись остановится, текст распознается и вставится туда, где стоит курсор: в панель Claude Code в Cursor / VS Code, в терминал, в любое окно.
+- Распознавание **локально** на Mac (Whisper large-v3 через mlx-whisper, длинные записи — turbo): звук никуда не уходит, подписка не нужна. Только Apple Silicon (M1 и новее). Модели ~4,5 ГБ качаются при установке один раз.
+- **Три разрешения** для python при первом запуске: Системные настройки → Конфиденциальность и безопасность → **Микрофон**, **Мониторинг ввода**, **Универсальный доступ**. Если macOS не спросила — добавь вручную файл из строки `permissions: … binary=…` в `~/voice-dictate/dictate.log`, затем `launchctl kickstart -k gui/$(id -u)/local.voice-dictate`.
+- Термины, которые надо писать правильно, — `~/voice-dictate/vocab.txt`; устойчивые ошибки «услышал => надо» — `fixes.txt` (подхватываются без перезапуска, повторная установка их не затирает).
+- Не работает — смотри `tail ~/voice-dictate/dictate.log`: строка `ready: tap Right Option` значит, что программа ждёт нажатия.
+- Пропустить установку: `SKIP_VOICE=1 bash install.sh`.
+
+Встроенный голос Claude Code (`"voiceEnabled": true`, пробел в терминальном `claude`, нужен вход через claude.ai и `sox`) тоже включён, но это другой механизм; основной — правый Option.
 
 ## Долгий токен для фоновых задач
 

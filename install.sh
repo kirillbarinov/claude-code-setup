@@ -182,6 +182,43 @@ else
   echo "      $PY ~/.claude/wiki-engine/wiki_update.py или повесь его на cron раз в 2 часа."
 fi
 
+# --- Голосовая диктовка: правый Option — старт/стоп, текст вставляется в активное окно ---
+# Распознавание локально (mlx-whisper), поэтому только Mac на Apple Silicon.
+# Модели ~4,5 ГБ качаются один раз. Пропустить: SKIP_VOICE=1.
+if [ "$(uname)" = "Darwin" ] && [ "$(uname -m)" = "arm64" ] && [ "${SKIP_VOICE:-0}" != "1" ]; then
+  echo "==> Голосовая диктовка (правый Option)..."
+  VD="$HOME/voice-dictate"; mkdir -p "$VD"
+  cp "$REPO_DIR"/voice-dictate/{dictate.py,overlay.py,requirements.txt} "$VD/"
+  # словарь и автозамены — личные, не затираем
+  for f in vocab.txt fixes.txt; do [ -f "$VD/$f" ] || cp "$REPO_DIR/voice-dictate/$f" "$VD/"; done
+  if ! command -v uv >/dev/null && command -v brew >/dev/null; then brew install uv >/dev/null 2>&1 || true; fi
+  if [ ! -x "$VD/.venv/bin/python" ]; then
+    if command -v uv >/dev/null; then uv venv -q --python 3.12 "$VD/.venv"; else "$PY" -m venv "$VD/.venv"; fi
+  fi
+  if command -v uv >/dev/null; then
+    uv pip install -q --python "$VD/.venv/bin/python" -r "$VD/requirements.txt"
+  else
+    "$VD/.venv/bin/python" -m pip install -q -r "$VD/requirements.txt"
+  fi
+  echo "   Скачиваю модели Whisper (~4,5 ГБ, один раз)..."
+  if "$VD/.venv/bin/python" -c "
+from huggingface_hub import snapshot_download
+for r in ('mlx-community/whisper-large-v3-mlx', 'mlx-community/whisper-large-v3-turbo'):
+    snapshot_download(r)
+"; then
+    LA="$HOME/Library/LaunchAgents"; mkdir -p "$LA"
+    dst="$LA/local.voice-dictate.plist"
+    launchctl bootout "gui/$(id -u)/local.voice-dictate" 2>/dev/null || true
+    sed "s|__HOME__|$HOME|g" "$REPO_DIR/voice-dictate/local.voice-dictate.plist" > "$dst"
+    launchctl bootstrap "gui/$(id -u)" "$dst" && echo "   local.voice-dictate — загружена" \
+      || echo "   ⚠️  не загрузилась: launchctl bootstrap gui/$(id -u) $dst"
+  else
+    echo "   ⚠️  модели не скачались — запусти install.sh ещё раз"
+  fi
+elif [ "$(uname)" = "Darwin" ] && [ "${SKIP_VOICE:-0}" != "1" ]; then
+  echo "   ℹ️  Голосовая диктовка требует Apple Silicon (M1 и новее) — пропущена."
+fi
+
 # --- Дизайн-стек: агенты design-director/design-critic + ~135 скиллов ---
 # Свои скиллы живут в ~/.local/share/design-skills, чужие подтягиваются из апстримов,
 # в ~/.claude/skills раскладываются симлинками по манифесту design-skills/SYMLINKS.txt.
@@ -331,9 +368,13 @@ echo "      об этом не узнает. В обычном терминал�
 echo "        claude setup-token"
 echo "        security add-generic-password -U -s claude-unattended-token -a \"\$USER\" -w"
 echo "      (вторая команда спросит пароль — вставь туда токен из первой)."
-echo "   7. Голос: в панели Claude Code в Cursor / VS Code зажми Option (⌥), говори, отпусти;"
-echo "      в терминальном claude — зажми пробел. Нужны вход через claude.ai и доступ к"
-echo "      микрофону: Системные настройки → Конфиденциальность → Микрофон → Cursor / Терминал."
+echo "   7. Голос: нажми и отпусти ПРАВЫЙ Option — звук «тинь», говори; ещё раз правый Option —"
+echo "      текст вставится туда, где курсор (Claude Code в Cursor, терминал, любое окно)."
+echo "      При первом запуске macOS спросит три разрешения для python — дай все:"
+echo "      Системные настройки → Конфиденциальность и безопасность →"
+echo "        Микрофон, Мониторинг ввода, Универсальный доступ."
+echo "      Если запроса не было — добавь там вручную файл, указанный в ~/voice-dictate/dictate.log"
+echo "      (строка permissions: … binary=…), затем: launchctl kickstart -k gui/\$(id -u)/local.voice-dictate"
 echo ""
 echo "ℹ️  Компакт настроен профилем autoCompactWindow=253000 (порог срабатывания — 220k)."
 echo "   Ниже 200000 прекомпьют отключается движком; см. раздел «Компакт» в README."

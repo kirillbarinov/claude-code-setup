@@ -1,0 +1,44 @@
+# Термины, которые модель должна писать правильно. По одному на строку.
+Claude Code
+FastAPI
+pytest
+Python
+TypeScript
+Next.js
+React
+Docker
+docker compose
+Git
+GitHub
+API
+JWT
+SQL
+PostgreSQL
+деплой
+прод
+бэкенд
+фронтенд
+хук
+коммит
+пулл-реквест
+рефакторинг
+эндпоинт
+Qwen
+Claude Opus
+Anthropic
+OpenAI
+SQLAlchemy
+README
+CI/CD
+pipeline
+GitHub Actions
+feature branch
+pull request
+review
+uv
+pip
+settings.json
+Lighthouse
+MLX
+Whisper
+LLM
