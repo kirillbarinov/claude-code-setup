@@ -28,6 +28,13 @@ if [ -f "$STATE/version-drift.md" ]; then
 fi
 
 # 3. Память claude-mem перестала писать — флаг ставит claude-mem-backup.sh
+# Флаг снимается только следующим бэкапом (раз в сутки) — если запись уже ожила,
+# снимаем сами, иначе тревога врёт до 24 ч (аудит 2026-11-09b, D3).
+if [ -f "$STATE/memory-stalled.md" ] && [ -f "$HOME/.claude-mem/claude-mem.db" ]; then
+  fresh=$(/usr/bin/sqlite3 "$HOME/.claude-mem/claude-mem.db" \
+    "SELECT COUNT(*) FROM observations WHERE julianday(created_at) > julianday('now','-24 hours');" 2>/dev/null)
+  [ "${fresh:-0}" -gt 0 ] 2>/dev/null && rm -f "$STATE/memory-stalled.md"
+fi
 if [ -f "$STATE/memory-stalled.md" ]; then
   when=$(grep -m1 'последняя запись:' "$STATE/memory-stalled.md" | sed 's/^- //')
   why=$(grep -m1 'причина:' "$STATE/memory-stalled.md" | sed 's/^- //')

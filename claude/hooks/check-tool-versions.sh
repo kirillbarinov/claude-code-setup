@@ -17,6 +17,8 @@ ver_npm()    { npm -v 2>/dev/null; }
 ver_python() { "$PY" -V 2>&1 | awk '{print $2}'; }
 ver_claude() { claude --version 2>/dev/null | awk '{print $1}'; }
 ver_rtk()    { rtk --version 2>/dev/null | awk '{print $2}'; }
+# context-mode: поле version в installed_plugins.json отстаёт от реальной сборки — берём каталог installPath
+ver_ctxmode() { "$PY" -c "import json,os;d=json.load(open(os.path.expanduser('~/.claude/plugins/installed_plugins.json')))['plugins'];e=[v for k,v in d.items() if k.startswith('context-mode@')];print(os.path.basename(e[0][0]['installPath']) if e else '')" 2>/dev/null; }
 ver_pplx()   { "$PY" -c "import json,glob;p=glob.glob('$HOME/.claude/mcp/perplexity-mcp/package.json');print(json.load(open(p[0]))['version'] if p else '')" 2>/dev/null; }
 
 {
@@ -26,6 +28,7 @@ ver_pplx()   { "$PY" -c "import json,glob;p=glob.glob('$HOME/.claude/mcp/perplex
   echo "claude|$(ver_claude)"
   echo "rtk|$(ver_rtk)"
   echo "perplexity-mcp|$(ver_pplx)"
+  echo "context-mode|$(ver_ctxmode)"
 } > "$STATE/.versions.actual"
 
 "$PY" - "$MANIFEST" "$STATE/.versions.actual" "$REPORT" <<'PYEOF'
