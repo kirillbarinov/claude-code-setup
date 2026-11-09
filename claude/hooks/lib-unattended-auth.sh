@@ -16,6 +16,9 @@ if [ -f "$HOME/.claude/secrets.env" ]; then set -a; . "$HOME/.claude/secrets.env
 AUTH_SOURCE="вход CLI"
 if [ -z "${CLAUDE_CODE_OAUTH_TOKEN:-}" ]; then
   _unattended_token=$(security find-generic-password -s claude-unattended-token -a "$USER" -w 2>/dev/null)
+  # setup-token переносит длинный токен по ширине терминала; при копировании перенос
+  # становится пробелом (09.11.2026: 401 / «Not logged in»). В токене пробелов не бывает.
+  _unattended_token=$(printf %s "$_unattended_token" | tr -d '[:space:]')
   if [ -n "$_unattended_token" ]; then
     export CLAUDE_CODE_OAUTH_TOKEN="$_unattended_token"
     AUTH_SOURCE="токен из связки ключей"

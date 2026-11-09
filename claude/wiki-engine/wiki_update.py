@@ -32,7 +32,8 @@ def unattended_token() -> str:
     try:
         r = subprocess.run(["/usr/bin/security", "find-generic-password", "-s", "claude-unattended-token",
                             "-a", os.environ.get("USER", ""), "-w"], capture_output=True, text=True, timeout=10)
-        return r.stdout.strip() if r.returncode == 0 else ""
+        # перенос строки из setup-token при копировании становится пробелом — выбрасываем
+        return "".join(r.stdout.split()) if r.returncode == 0 else ""
     except (OSError, subprocess.TimeoutExpired):
         return ""
 
