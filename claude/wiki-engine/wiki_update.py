@@ -23,6 +23,20 @@ def claude_bin() -> str:
     return os.environ.get("WIKI_CLAUDE_BIN") or shutil.which("claude") or str(Path.home() / ".local/bin/claude")
 
 
+def unattended_token() -> str:
+    """Долгий токен `claude setup-token` из связки ключей (см. hooks/lib-unattended-auth.sh).
+
+    Вход CLI истекает молча; 01.11 и 08.11.2026 на нём падали фоновые `claude -p`."""
+    if os.environ.get("CLAUDE_CODE_OAUTH_TOKEN"):
+        return os.environ["CLAUDE_CODE_OAUTH_TOKEN"]
+    try:
+        r = subprocess.run(["/usr/bin/security", "find-generic-password", "-s", "claude-unattended-token",
+                            "-a", os.environ.get("USER", ""), "-w"], capture_output=True, text=True, timeout=10)
+        return r.stdout.strip() if r.returncode == 0 else ""
+    except (OSError, subprocess.TimeoutExpired):
+        return ""
+
+
 def run_model(stage: Path, root: Path, delta: str, effort: str):
     settings = json.dumps({"permissions": {"deny": [f"Edit(/{root}/**)"]}})
     cmd = [claude_bin(), "-p", "--restricted", "--strict-mcp-config", "--no-session-persistence",
@@ -30,6 +44,9 @@ def run_model(stage: Path, root: Path, delta: str, effort: str):
            "--settings", settings, "--allowedTools", "Read Glob Grep Write Edit",
            "--append-system-prompt-file", str(PROMPT), "--add-dir", str(root)]
     env = dict(os.environ, CLAUDE_WIKI_RUN="1")
+    token = unattended_token()
+    if token:
+        env["CLAUDE_CODE_OAUTH_TOKEN"] = token
     try:
         r = subprocess.run(cmd, cwd=stage, input=delta, text=True, capture_output=True,
                            timeout=MODEL_TIMEOUT, env=env)

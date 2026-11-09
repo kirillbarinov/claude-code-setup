@@ -22,7 +22,7 @@ def start_text(p: W.Paths, cwd: str) -> str:
     out = (f"# Вики проекта «{name}» — маршрутизатор (обновлён {meta.get('updated', '?')})\n"
            f"Страницы: ~/.claude/wiki/{name}/pages/ — открывать по нужде, не больше 5. "
            f"Другие проекты: ~/.claude/wiki/_index.md\n\n{body.strip()}\n")
-    err = W.load_state(p).get(name, {}).get("last_error")
+    err = W.load_state(p).get(W.nfc(name), {}).get("last_error")
     warn = f"\nВнимание: последнее обновление вики не прошло — {err[:200]}\n" if err else ""
     room = MAX_OUT - len(warn) - 20
     if len(out) > room:

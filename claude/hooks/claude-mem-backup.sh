@@ -1,4 +1,5 @@
 #!/bin/bash
+export PATH="/opt/homebrew/bin:$HOME/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin"  # launchd даёт голый PATH
 # Бэкап памяти claude-mem в Google Drive (или в папку из CLAUDE_MEM_BACKUP_DIR). Единственная живая память сетапа —
 # 888 сводок сессий и 7400+ наблюдений — существует в одном экземпляре без этого.
 # sqlite3 .backup корректно снимает копию с БД, в которую пишут (в отличие от cp).

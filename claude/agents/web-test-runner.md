@@ -2,7 +2,7 @@
 name: web-test-runner
 description: Lightweight in-browser smoke tester. Spawned by the /web-test skill. Discovers how the app starts, brings up the dev server if needed, drives a real browser through the golden path, watches console/network, and returns a PASS/FAIL verdict with artifact paths. Does NOT do full QA, security audit, or auto-fix loops — that is security-auditor's job.
 tools: Bash, Read, Write, Edit, Glob, Grep, mcp__chrome-devtools__*
-model: sonnet
+model: opus
 color: green
 ---
 

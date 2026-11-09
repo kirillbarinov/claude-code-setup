@@ -1,6 +1,6 @@
 ---
 name: web-test
-description: "Smoke-test the current web app in a real browser. Use when the user wants to open/run the app and check it works in a browser, verify a UI change visually, or asks to /web-test. Opens the dev server, drives the golden path, watches console/network, returns PASS/FAIL — all in an isolated subagent so browser noise never enters the main session."
+description: "Smoke-test the current web app in a real browser. Use when the user wants to open/run the app and check it works in a browser, verify a UI change visually, or asks to /web-test. Opens the dev server, drives the golden path, watches console/network, returns PASS/FAIL — all in an isolated subagent so browser noise never enters the main session. Не путать — это быстрый smoke в изолированном субагенте с вердиктом PASS/FAIL. Свой Playwright-скрипт под конкретную проверку — webapp-testing."
 ---
 
 # /web-test
@@ -25,6 +25,8 @@ Example prompt to the subagent:
 > starts, bring up the dev server if it isn't running, drive the golden path,
 > watch console/network, save artifacts under reports/qa/, and return the compact
 > VERDICT block.
+
+**Data hygiene.** If the smoke creates data (fields, zones, machines), the subagent names it with the prefix `Smoke ` and deletes it at the end through the UI or the app's API (never raw DB DELETE). Leftovers overlap later runs and break unrelated tests. Add this sentence to the prompt above.
 
 ## What to relay back
 

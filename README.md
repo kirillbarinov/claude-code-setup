@@ -15,7 +15,7 @@
 | **Документ-скиллы** | `xlsx`, `docx`, `pptx`, `pdf` — чтение/создание/правка офисных файлов (официальные скиллы [anthropics/skills](https://github.com/anthropics/skills), ставятся install-скриптом вместе с Python-зависимостями) |
 | **Кастомные агенты** | backend-engineer, frontend-engineer, security-auditor (QA через реальный браузер), documenter, web-test-runner, researcher, design-director, design-critic |
 | **Команды** | `/team` — командный режим из нескольких агентов (+ вспомогательные скрипты `scripts/team-*` для tmux/iTerm-панелей) |
-| **Хуки** | perplexity-guard (направляет весь веб-поиск в Perplexity MCP, субагенты пропускает) + его тест-сьют, rtk-rewrite (авто-проксирование команд через rtk), ultrathink-conditional, tmux-swarm-reaper (жнёт осиротевшие tmux-сессии `/team`), context-mode-cache-heal, validate-research-report.py, project-map (карта папок кода в подкаталожных `CLAUDE.md`), os-audit-staleness (на старте сессии сообщает об устаревшем аудите, дрейфе версий, остановке памяти, сбоях вики), claude-mem-provider / claude-mem-model (сторож канала памяти: подписка основным, OpenRouter запасным), бэкапы памяти и вики |
+| **Хуки** | perplexity-guard (направляет весь веб-поиск в Perplexity MCP, субагенты пропускает) + его тест-сьют, rtk-rewrite (авто-проксирование команд через rtk), ultrathink-conditional, tmux-swarm-reaper (жнёт осиротевшие tmux-сессии `/team`), context-mode-cache-heal, validate-research-report.py, project-map (карта папок кода в подкаталожных `CLAUDE.md`), os-audit-staleness (на старте сессии сообщает об устаревшем аудите, дрейфе версий, остановке памяти, сбоях вики), claude-mem-provider / claude-mem-model (сторож канала памяти: подписка основным, OpenRouter запасным; ловит и ошибки входа в логах воркера), agent-watchdog (сторож tmux-напарников `/team`: после автообновления CLI они молча умирали), lib-unattended-auth (ключи и долгий токен для фоновых `claude -p`), бэкапы памяти и вики |
 | **Вики проектов** | Автоматическая база знаний по каждому проекту в `~/.claude/wiki/` (git): router проекта подгружается на старте сессии, страницы — по нужде. Пишется фоновой моделью из памяти claude-mem и git-истории, проверяется lint-ом, в вики не попадают секреты. Движок — `wiki-engine/` (python stdlib, 58 тестов). См. раздел [Вики проектов и фоновые задачи](#вики-проектов-и-фоновые-задачи) |
 | **Компакт** | Профиль автокомпакта с рабочим прекомпьютом — см. раздел [Компакт](#компакт) |
 | **CLI** | `rtk` (Rust Token Killer — экономит 60–90% токенов на dev-командах), `ezycopy` (чистый Markdown из любого URL), `anydoc` (офисные файлы и PDF в Markdown) |
@@ -72,6 +72,7 @@ powershell -ExecutionPolicy Bypass -File install.ps1
 ```
 
 Особенности нативной Windows-установки:
+- Обновление 2026-11-09 (голос, долгий токен, ключи через `secrets.env`, сторож напарников) проверялось только на macOS; `install.ps1` эти шаги не делает.
 - Хуки — bash-скрипты, исполняются через Git Bash (поэтому Git for Windows обязателен).
 - `rtk` через brew недоступен — хук rtk-rewrite просто пропускает команды (всё работает, но без экономии токенов). См. https://www.rtk-ai.app/
 - Дизайн-скиллы **копируются**, а не линкуются (симлинки на Windows требуют админ-прав), поэтому обновление — повторный запуск скрипта. Живут в `%LOCALAPPDATA%\design-skills`.
@@ -88,16 +89,36 @@ powershell -ExecutionPolicy Bypass -File install.ps1
 5. Разворачивают дизайн-стек: свои скиллы в `~/.local/share/design-skills`, чужие — клонами из апстримов, симлинки в `~/.claude/skills` по манифесту `design-skills/SYMLINKS.txt`.
 6. Регистрируют MCP `chrome-devtools`, `context7` и `perplexity-mcp` (спросит твой `PERPLEXITY_API_KEY` — взять на https://www.perplexity.ai/settings/api; ключ никуда, кроме твоей локальной конфигурации, не попадает).
 7. Ставят бинари для плагинов: `pyright`, `typescript-language-server` (+ вложенный TypeScript 5), `@sentry/cli` (npm), `semgrep` (brew/pip).
-8. Ставят `rtk` через brew (только macOS/Linux) и `anydoc` через npm; подсказывают, как поставить `ezycopy`.
+8. Ставят `rtk` и `sox` (голос в терминале) через brew (только macOS/Linux) и `anydoc` через npm; подсказывают, как поставить `ezycopy`.
 9. Удаляют устаревшее из прошлых версий сетапа (`source-finder`, `youtube-search`, `research-workflow.md`).
 
 Только `install.sh`:
 
 10. Ставят движок вики в `~/.claude/wiki-engine`, создают `~/.claude/wiki` (git) со списком исключений и `~/.claude/state`.
 11. На macOS раскладывают шесть launchd-задач из шаблонов `claude/launchd/` (подставляются `$HOME`, найденный python и `PATH` с `claude`) и загружают их. Повторный запуск перезагружает задачи.
-12. Создают `~/.claude/secrets.env` с пустым `OPENROUTER_API_KEY`, если файла нет (ключи в репозиторий не попадают).
+12. Создают `~/.claude/secrets.env` с пустыми `OPENROUTER_API_KEY` и `PERPLEXITY_API_KEY`, если файла нет, и добавляют в `~/.zshrc` строку, которая его подключает. Ключи в репозиторий не попадают; фоновые задачи launchd `.zshrc` не читают и берут ключи через `hooks/lib-unattended-auth.sh`.
 
 После этого запусти `claude` — он сам предложит установить плагины, перечисленные в `settings.json` (superpowers, skill-creator, frontend-design, pyright-lsp, typescript-lsp, semgrep, sentry, sentry-cli, hookify — из официального маркетплейса; context-mode, claude-mem и impeccable — из своих GitHub-маркетплейсов).
+
+## Голосовой ввод
+
+Включён в профиле: `"voiceEnabled": true` в `settings.json`.
+
+- **Панель Claude Code в Cursor / VS Code** — зажми **Option (⌥)**, говори, отпусти: текст встанет в поле ввода.
+- **Claude Code в терминале** — то же самое пробелом (зажать и держать). Нужен SoX для записи звука — инсталлятор ставит его через brew. Другая клавиша — привязка `voice:pushToTalk` в `~/.claude/keybindings.json`.
+- Нужен вход через аккаунт claude.ai (`/login`) — с ключом API голос не работает.
+- macOS спросит доступ к микрофону. Если отказал — Системные настройки → Конфиденциальность и безопасность → Микрофон → включить Cursor / VS Code / Терминал и перезапустить приложение.
+
+## Долгий токен для фоновых задач
+
+Фоновые задачи (аудит, писатель вики) запускают `claude -p` без тебя. Обычный вход CLI истекает молча, и задачи начинают падать, а launchd этого не замечает. Поэтому один раз, **в обычном терминале** (не через `!` внутри Claude — иначе токен попадёт в переписку):
+
+```bash
+claude setup-token
+security add-generic-password -U -s claude-unattended-token -a "$USER" -w
+```
+
+Вторая команда спросит пароль — вставь туда токен из первой. Скрипты берут его из связки ключей сами (`hooks/lib-unattended-auth.sh`); нет токена — работают на обычном входе. Проверка: `tail ~/.claude/state/os-audit.log` — строка `старт (вход: токен из связки ключей)`.
 
 ## Вики проектов и фоновые задачи
 
@@ -175,7 +196,7 @@ cd ~/.claude/wiki-engine && python3 -m unittest discover -s tests   # 58 тес�
 
 ## Заметки
 
-- **Perplexity обязателен по дизайну сетапа**: хук `perplexity-guard.sh` блокирует встроенные `WebSearch`/`WebFetch` и публичный `curl`/`wget`, направляя весь поиск в Perplexity MCP. Субагенты guard пропускает по полям `agent_id`/`agent_type`. Если ключа нет — временно отключи guard (`touch ~/.claude/perplexity-guard.disabled`, окно 10 мин) или удали его записи из `settings.json`. Локальные хосты (localhost, 127.x, 10.x, 192.168.x, 172.16–31.x) не блокируются.
+- **Perplexity обязателен по дизайну сетапа**: хук `perplexity-guard.sh` блокирует встроенные `WebSearch`/`WebFetch` и публичный `curl`/`wget`, направляя весь поиск в Perplexity MCP. Субагенты guard пропускает по полям `agent_id`/`agent_type`. Если ключа нет — временно отключи guard (`touch ~/.claude/perplexity-guard.disabled`, окно 10 мин) или удали его записи из `settings.json`. Локальные хосты (localhost, 127.x, 10.x, 192.168.x, 172.16–31.x) guard не блокирует, но плагин context-mode 2.x режет любой `curl`/`wget`, если он не тихий (`-s`/`-q`) с выводом в файл (`-o`/`>`).
 - Поиск идёт **не** сырым синтезом: скилл `research` требует открывать первоисточники, а для режима `wide` — прогонять вывод через «ломателя». Форму отчёта проверяет `hooks/validate-research-report.py` (запускается вручную, стоит бесплатно).
 - `permissions.deny` в профиле держит только необратимое: `git push --force`, `rm -rf /`, `wget … | bash`. Обычный `git push` разрешён — если хочешь, чтобы агент не пушил сам, добавь `"Bash(git push*)"` в тот же список.
 - `"skipDangerousModePermissionPrompt": true` — пропуск подтверждения при входе в опасный режим. Удобно, но это снятая страховка: **убери строку, если не уверен**.

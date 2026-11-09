@@ -1,4 +1,5 @@
 #!/bin/bash
+export PATH="/opt/homebrew/bin:$HOME/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin"  # launchd даёт голый PATH
 # Сверяет реальные версии инструментов с заявленными в ~/.claude/state/versions.expected.json.
 # Пишет отчёт о дрейфе только при расхождении. Не использует ИИ, квоту не тратит.
 # Запускается launchd-задачей local.claude-version-check (раз в месяц).

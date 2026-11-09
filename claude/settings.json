@@ -31,6 +31,15 @@
             "command": "__HOME__/.claude/hooks/ultrathink-conditional.sh"
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"__HOME__/.claude/hooks/agent-watchdog.sh\" ensure UserPromptSubmit; bash \"__HOME__/.claude/hooks/agent-watchdog.sh\" check UserPromptSubmit",
+            "timeout": 15
+          }
+        ]
       }
     ],
     "PreToolUse": [
@@ -102,6 +111,16 @@
             "timeout": 5
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"__HOME__/.claude/hooks/agent-watchdog.sh\" ensure PreToolUse",
+            "timeout": 15
+          }
+        ],
+        "matcher": "Agent|Task"
       }
     ],
     "SessionStart": [
@@ -164,6 +183,15 @@
             "timeout": 5
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"__HOME__/.claude/hooks/agent-watchdog.sh\" ensure SessionStart",
+            "timeout": 15
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -196,6 +224,16 @@
             "timeout": 5
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sleep 4; bash \"__HOME__/.claude/hooks/agent-watchdog.sh\" check PostToolUse",
+            "timeout": 20
+          }
+        ],
+        "matcher": "Agent|Task"
       }
     ],
     "SessionEnd": [
@@ -263,5 +301,6 @@
   "autoCompactWindow": 253000,
   "skipDangerousModePermissionPrompt": true,
   "teammateMode": "tmux",
-  "voiceEnabled": true
+  "voiceEnabled": true,
+  "skipWorkflowUsageWarning": true
 }

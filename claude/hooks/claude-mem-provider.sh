@@ -196,12 +196,50 @@ kd = chitat(COOLDOWN, [])
 kd = kd if isinstance(kd, list) else []
 
 
+# Ошибки входа подписки воркер в observer-health не пишет — только в логи.
+# Так память молчала 26.10–09.11.2026, а сторож видел чистый health.
+VHOD_MARKERY = ('disabled Claude subscription', 'Not logged in',
+                'SDK authentication failed', 'Refusing to inject expired',
+                'inference allowance exhausted')
+LOGI = os.path.join(HOME, '.claude-mem', 'logs')
+
+
+def vhod_otkazal():
+    """Ошибка входа подписки в логах воркера ПОСЛЕ переключения и позже последнего успеха."""
+    granica = max(since, posl_uspeh) / 1000
+    try:
+        svezhie_logi = sorted(
+            (os.path.join(LOGI, f) for f in os.listdir(LOGI) if f.endswith('.log')),
+            key=os.path.getmtime)[-2:]
+    except OSError:
+        return False
+    for put in svezhie_logi:
+        if os.path.getmtime(put) <= granica:
+            continue
+        try:
+            with open(put, encoding='utf-8', errors='replace') as f:
+                f.seek(max(0, os.path.getsize(put) - 500_000))
+                for stroka in f:
+                    if not any(m in stroka for m in VHOD_MARKERY):
+                        continue
+                    # строка вида «[2026-11-08 12:34:56.789] ...»
+                    try:
+                        t = datetime.datetime.strptime(stroka[1:20], '%Y-%m-%d %H:%M:%S').timestamp()
+                    except ValueError:
+                        t = os.path.getmtime(put)
+                    if t > granica:
+                        return True
+        except OSError:
+            continue
+    return False
+
+
 def slomalsya(imya):
     """Канал сломан, если беда случилась ПОСЛЕ того, как мы на него встали."""
     svezhiy_kulldaun = any(
         z.get('provider') == imya and (z.get('armedAtMs') or 0) > since for z in kd)
     mnogo_oshibok = posl_oshibka > since and oshibok >= PODRYAD.get(imya, 5)
-    return svezhiy_kulldaun or mnogo_oshibok
+    return svezhiy_kulldaun or mnogo_oshibok or (imya == 'claude' and vhod_otkazal())
 
 
 # Метание: оба канала валятся, переключать дальше бессмысленно.

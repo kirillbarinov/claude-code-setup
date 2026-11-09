@@ -115,8 +115,16 @@ echo "   settings.json установлен (старый — в бэкапе)"
 
 # Ключи живут вне репозитория. Шаблон без значений — только если файла ещё нет.
 if [ ! -f "$CLAUDE_DIR/secrets.env" ]; then
-  printf '# Ключи для хуков. Файл не коммитить.\nOPENROUTER_API_KEY=\n' > "$CLAUDE_DIR/secrets.env"
+  printf '%s\n' '# Ключи API. Файл не коммитить, права 600.' \
+    '# Читают: интерактивный шелл (строка в ~/.zshrc) и фоновые задачи (hooks/lib-unattended-auth.sh).' \
+    'export OPENROUTER_API_KEY=' 'export PERPLEXITY_API_KEY=' > "$CLAUDE_DIR/secrets.env"
   chmod 600 "$CLAUDE_DIR/secrets.env"
+fi
+# Ключи — в окружение каждого нового терминала (один раз, без дублей).
+SRC_LINE='[ -f ~/.claude/secrets.env ] && source ~/.claude/secrets.env'
+if ! grep -qF "$SRC_LINE" "$HOME/.zshrc" 2>/dev/null; then
+  printf '\n# Claude Code: ключи API\n%s\n' "$SRC_LINE" >> "$HOME/.zshrc"
+  echo "   ~/.zshrc теперь подключает ~/.claude/secrets.env"
 fi
 
 # --- Вики проектов: хранилище (git) и состояние ---
@@ -292,6 +300,11 @@ if ! command -v rtk >/dev/null; then
     echo "   ⚠️  rtk не установлен и brew нет. См. https://www.rtk-ai.app/"
   fi
 fi
+# SoX — запись звука для голосового ввода в терминальном claude (панели в Cursor/VS Code не нужен)
+if ! command -v sox >/dev/null && command -v brew >/dev/null; then
+  echo "   Устанавливаю sox (голосовой ввод в терминале)..."
+  brew install sox >/dev/null 2>&1 || echo "   ⚠️  sox не установлен — голос в терминале не заработает: brew install sox"
+fi
 if ! command -v ezycopy >/dev/null; then
   echo "   ⚠️  ezycopy не установлен — нужен для Web Fetching Rules."
   echo "      Установка: https://github.com/gupsammy/EzyCopy (go install github.com/gupsammy/EzyCopy@latest)"
@@ -313,6 +326,14 @@ echo "   4. Память claude-mem: запасной канал через Open
 echo "      (CLAUDE_MEM_OPENROUTER_API_KEY) и в ~/.claude/secrets.env (OPENROUTER_API_KEY, им"
 echo "      claude-mem-model.sh проверяет цепочку). Без ключа сторож канала просто держит подписку."
 echo "   5. Вики проектов заполняется сама (раз в 2 ч, macOS). Вручную: скилл wiki, «обнови вики»."
+echo "   6. Долгий токен для фоновых задач (аудит, вики): вход CLI истекает молча, а launchd"
+echo "      об этом не узнает. В обычном терминале, один раз:"
+echo "        claude setup-token"
+echo "        security add-generic-password -U -s claude-unattended-token -a \"\$USER\" -w"
+echo "      (вторая команда спросит пароль — вставь туда токен из первой)."
+echo "   7. Голос: в панели Claude Code в Cursor / VS Code зажми Option (⌥), говори, отпусти;"
+echo "      в терминальном claude — зажми пробел. Нужны вход через claude.ai и доступ к"
+echo "      микрофону: Системные настройки → Конфиденциальность → Микрофон → Cursor / Терминал."
 echo ""
 echo "ℹ️  Компакт настроен профилем autoCompactWindow=253000 (порог срабатывания — 220k)."
 echo "   Ниже 200000 прекомпьют отключается движком; см. раздел «Компакт» в README."

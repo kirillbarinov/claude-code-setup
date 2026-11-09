@@ -87,7 +87,7 @@ done
 Проверить, что названные по имени скиллы и агенты существуют:
 
 ```bash
-for s in research web-test archify artifact-diagramming os-audit; do
+for s in research web-test archify os-audit; do
   ls -d ~/.claude/skills/$s >/dev/null 2>&1 || echo "СКИЛЛ НЕ НАЙДЕН (или он из плагина): $s"
 done
 for a in researcher web-test-runner security-auditor design-director design-critic; do
@@ -97,6 +97,11 @@ done
 
 Скилл может жить в плагине, а не в `~/.claude/skills` — тогда это не поломка. Проверить по
 списку доступных скиллов, прежде чем помечать красным.
+
+Встроенные скиллы харнесса (`artifact-diagramming`, `artifact-design`, `artifact-capabilities`,
+`dataviz`) не лежат ни в `~/.claude/skills`, ни в плагинах, а в `claude -p` (плановый прогон)
+их нет и в списке. Отсутствие на диске для них — не находка. Красным только если их нет
+и в списке скиллов интерактивной сессии (ложный RED 2026-11-09b).
 
 Проверить CLI-команды, на которые опираются правила:
 

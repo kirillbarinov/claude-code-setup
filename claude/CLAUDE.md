@@ -3,6 +3,7 @@
 # Confidence Rule
 
 Do not make any changes until you have 95% confidence in what you need to build. Ask me follow-up questions until you reach that confidence.
+Не действует, когда владелец велел работать автономно, и в прогонах без канала до человека (субагент, `claude -p`, launchd): там решать самому и записать принятое решение.
 
 # Поиск в интернете — «Воронка» (v2)
 
@@ -14,9 +15,9 @@ Do not make any changes until you have 95% confidence in what you need to build.
 
 **Мимо поиска:** библиотеки/API/конфиги → Context7; известен URL → `ezycopy <URL>`; длинный документ → `ctx_fetch_and_index` + `ctx_search`; факт из claude-mem — кандидат с датой источника, не ответ.
 
-**Форма ответа:** Вывод / Обоснование / Кто не согласен / Не установлено / Покрытие. Каждое утверждение — с числом независимых источников, URL и датой источника, не сегодняшней. Не нашёл → «не найдено такими-то каналами», не правдоподобная заготовка. Cutoff — май 2026: всё после искать обязательно, полгода до — проверять.
+**Форма ответа:** Вывод / Обоснование / Кто не согласен / Не установлено / Покрытие. Каждое утверждение — с числом независимых источников, URL и датой источника, не сегодняшней. Не нашёл → «не найдено такими-то каналами», не правдоподобная заготовка. Cutoff — граница знаний текущей модели (сейчас июнь 2026): всё после искать обязательно, полгода до — проверять.
 
-**Локальные хосты** (localhost, 127.x, 10.x, 192.168.x, 172.16–31.x) `curl`'ом не блокируются.
+**Локальные хосты** (localhost, 127.x, 10.x, 192.168.x, 172.16–31.x) guard Воронки не блокирует. Но context-mode режет любой `curl`/`wget`, если он не тихий (`-s`/`-q`) с выводом в файл (`-o`/`>`).
 
 **Фолбэк при мёртвом Perplexity:** `touch ~/.claude/perplexity-guard.disabled` — 10-минутное окно встроенного поиска; удалить флаг, когда ожил. Воронка не меняется — меняется канал обнаружения.
 
@@ -81,13 +82,15 @@ Use the Skill tool autonomously — invoke any skill whenever you judge it appro
 # Subagents
 
 Use subagents for any exploration or research. If a task needs 3+ files or multi-file analysis, spawn a subagent and return only summarized insights.
+Исключения: quick-режим скилла `research` ищет инлайн; прод читает главная сессия (Applied Learning).
 
 ## Web Fetching Rules
 
 **Запрет касается чтения содержимого страницы по URL, не управления браузером.**
 
 Нужно прочитать страницу или документацию по URL — built-in `web_fetch` и браузерные MCP
-ЗАПРЕЩЕНЫ. Только `ezycopy <URL>` в терминале: на выходе чистый Markdown без мусора.
+ЗАПРЕЩЕНЫ. Страница — `ezycopy <URL>` в терминале (чистый Markdown без мусора); длинный
+документ — `ctx_fetch_and_index` + `ctx_search`.
 
 Браузерные MCP (`chrome-devtools`, `claude-in-chrome`) остаются штатным инструментом там, где
 предмет — **работающее приложение, а не текст страницы**: smoke через `web-test`, проверка
@@ -100,6 +103,18 @@ Use subagents for any exploration or research. If a task needs 3+ files or multi
 старте). Порядок: router → нужные `pages/` (не больше 5) → grep/glob. Файл из `sources` страницы
 новее её `updated` — верить файлу. Вопрос про несколько проектов — начать с
 `~/.claude/wiki/_index.md`. Вики руками не править — скилл `wiki`.
+
+# Планы и спеки
+
+Дополняет superpowers (`writing-plans`, `brainstorming`); сам плагин не править — затрётся.
+
+- План: задача 1 — тонкий срез через все слои (UI → API → БД), работает end-to-end.
+  Дальше наращивать срезами, не слоями.
+- У каждой задачи плана строка `blocked-by: <номера задач>` или `blocked-by: —`.
+- Спека или план исполнены — в шапке `status: done (ГГГГ-ММ-ДД)`. Заменены новыми —
+  `status: superseded → <файл>`. Новая спека вместо старой — пометить старую сразу.
+- Спека без `status: done`/`superseded` — живой документ; помеченную не читать как описание
+  текущего кода.
 
 # Карта расположения
 
@@ -119,11 +134,12 @@ Use subagents for any exploration or research. If a task needs 3+ files or multi
 | Хуки | `~/.claude/hooks/` |
 | Настройки и регистрация хуков | `~/.claude/settings.json` |
 | Боевая сборка perplexity-MCP | `~/.claude/mcp` |
+| Ключи API (`PERPLEXITY_API_KEY`, OpenRouter, fal и др.) | `~/.claude/secrets.env` — грузит `~/.zshrc`; launchd-скрипты — через `hooks/lib-unattended-auth.sh` (там же долгий токен из связки ключей) |
 | Журнал решений guard | `~/.claude/perplexity-guard.log` |
 | Отчёты аудита сетапа | `~/.claude/audits/` |
 | Бэкапы памяти claude-mem | Google Drive → `claude-mem-backup/` (7 последних); другая папка — `CLAUDE_MEM_BACKUP_DIR` |
 | Окружение claude-mem (таймаут LLM) | блок `env` в `~/.claude/settings.json` — settings.json самого claude-mem его не читает |
-| Канал наблюдателя claude-mem | `~/.claude/hooks/claude-mem-provider.sh` — подписка основным, OpenRouter запасным, переключает сам |
+| Канал наблюдателя claude-mem | `~/.claude/hooks/claude-mem-provider.sh` — подписка основным, OpenRouter запасным, переключает сам (по health, кулдауну и ошибкам входа в логах воркера) |
 | Состав цепочки моделей OpenRouter | `~/.claude/hooks/claude-mem-model.sh` — показать, `backup` / `main` — переключить |
 | Состояние фоновых задач | `~/.claude/state/` |
 | Задачи по расписанию | `~/Library/LaunchAgents/local.claude-*.plist` |
@@ -180,10 +196,12 @@ Use subagents for any exploration or research. If a task needs 3+ files or multi
 - git commit в общем репо сметает индекс субагента; коммить через 'git commit -- <пути>'.
 - Cursor snapshots с root=home: 241GB за час, refs=0 → мусор, сносить.
 - bash не понимает кириллицу в именах переменных; `bash -n` это не ловит.
-- `/usr/bin/python3` — заглушка Xcode (exit 69). Рабочий: `__PYTHON__`.
+- `/usr/bin/python3` — системный 3.9 без нужных пакетов, не для работы. Рабочий: `__PYTHON__`.
 - ЧИТАТЬ .docx/.pptx/.xlsx/.pdf — только `anydoc`, не скиллы docx/pdf/xlsx: pandoc и pypdf не установлены.
 - СОЗДАВАТЬ/править .docx и .xlsx — штатные скиллы: python-docx и openpyxl на месте.
-- Забрал отчёт агента — сразу TaskStop. Сам он не умирает, копится в панели.
+- Забрал отчёт агента — TaskStop. Исполнителя с открытым ревью — только после закрытия ревью.
+- `brew upgrade node` откатывает глобальный npm на встроенный. После — `npm i -g npm@12`.
+- Вход CLI истекает молча; фоновые `claude -p` держать на токене `claude setup-token`.
 - Осиротевшие tmux `claude-swarm-<pid>` съедают pty → «fork failed: Device not configured». Жнец в SessionStart/End.
 - Боевой perplexity-MCP — локальная сборка ~/.claude/mcp, не глобальный npm. Обновлять обе.
 - PreCompact-лимитер дублирует нативную защиту от thrashing и глушит компакт. Не включать.
@@ -191,3 +209,8 @@ Use subagents for any exploration or research. If a task needs 3+ files or multi
 - Open WebUI на старте стирает `static/`; отделку класть в `frontend/static`.
 - `claude -p` молча не пишет в любые `.claude/`; рабочую папку модели держать вне.
 - Грабли дизайн-цикла (пробы, снимки, OpenRouter/fal, вёрстка) — в `~/.local/share/design-skills/LEARNED.md`, не сюда.
+- Блокирующий вопрос владельцу — только AskUserQuestion; вопрос в тексте теряется, работа стоит.
+- `isolation: worktree` берёт старый коммит. Делать `git worktree add -b <ветка> <путь> HEAD` самому.
+- Субагенту чтение прода режет классификатор даже с allow-правилом. Прод читает главная сессия.
+- Завершившемуся агенту SendMessage по имени теряется; слать по agentId, сверять git log.
+- Автообновление удаляет бинарник живой сессии → tmux-напарники мрут молча. Сторож `agent-watchdog.sh`.

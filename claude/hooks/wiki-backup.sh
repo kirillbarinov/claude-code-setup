@@ -1,4 +1,5 @@
 #!/bin/bash
+export PATH="/opt/homebrew/bin:$HOME/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin"  # launchd даёт голый PATH
 # Ежедневный архив вики проектов на Яндекс Диск (или в папку из CLAUDE_WIKI_BACKUP_DIR). Запускается launchd local.claude-wiki-backup.
 # Вики восстановима пересборкой, но пересборка стоит квоты и теряет курирование — поэтому бэкап.
 set -uo pipefail

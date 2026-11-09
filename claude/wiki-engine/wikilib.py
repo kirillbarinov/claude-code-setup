@@ -4,6 +4,7 @@ import os
 import re
 import shutil
 import time
+import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -103,11 +104,29 @@ def body_lines(text: str) -> int:
     return len(body.splitlines())
 
 
+def nfc(name: str) -> str:
+    """Имя проекта в одной форме Unicode.
+
+    macOS отдаёт кириллицу и в NFC, и в NFD («й» = «и» + U+0306). Два ключа одного
+    проекта давали призрачный «Трейдинг не обновился» (аудиты 2026-10-02 и 2026-11-09)."""
+    return unicodedata.normalize("NFC", name)
+
+
 def load_state(p: Paths) -> dict:
     try:
-        return json.loads(p.projects_json.read_text(encoding="utf-8"))
+        raw = json.loads(p.projects_json.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return {}
+    st: dict = {}
+    for name, rec in raw.items():
+        key = nfc(name)
+        old = st.get(key)
+        # из двух записей одного проекта живая — та, что успешно обновлялась позже
+        new_ok, old_ok = rec.get("last_ok_epoch") or 0, (old or {}).get("last_ok_epoch") or 0
+        # при равенстве побеждает запись, ключ которой уже был в NFC
+        if old is None or new_ok > old_ok or (new_ok == old_ok and name == key):
+            st[key] = rec
+    return st
 
 
 def save_state(p: Paths, st: dict) -> None:
@@ -120,7 +139,7 @@ def save_state(p: Paths, st: dict) -> None:
 def enqueue(p: Paths, project: str, cwd: str, now=None) -> None:
     p.state.mkdir(parents=True, exist_ok=True)
     with open(p.queue, "a", encoding="utf-8") as f:
-        f.write(f"{int(now if now is not None else time.time())}\t{project}\t{cwd}\n")
+        f.write(f"{int(now if now is not None else time.time())}\t{nfc(project)}\t{cwd}\n")
 
 
 def _read_queue(path: Path) -> list:
@@ -128,7 +147,7 @@ def _read_queue(path: Path) -> list:
     for line in path.read_text(encoding="utf-8").splitlines():
         parts = line.split("\t")
         if len(parts) >= 2 and parts[0].isdigit():
-            rows.append((int(parts[0]), parts[1]))
+            rows.append((int(parts[0]), nfc(parts[1])))
     return rows
 
 
